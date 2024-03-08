@@ -25,6 +25,26 @@ pub enum Token {
     Comma,
 }
 
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Token::Identifier(s) => write!(f, "Identifier: {}", s),
+            Token::StringLiteral(s) => write!(f, "StringLiteral: {}", s),
+            Token::Text(s) => write!(f, "Text: {}", s),
+            Token::Integer(i) => write!(f, "Integer: {}", i),
+            Token::Real(r) => write!(f, "Real: {}", r),
+            Token::Boolean(b) => write!(f, "Boolean: {}", b),
+            Token::Keyword(kw) => write!(f, "Keyword: {:?}", kw),
+            Token::ParenOpen => write!(f, "("),
+            Token::ParenClose => write!(f, ")"),
+            Token::BraceOpen => write!(f, "{{"),
+            Token::BraceClose => write!(f, "}}"),
+            Token::Colon => write!(f, ":"),
+            Token::Comma => write!(f, ","),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Keyword {
     Model,
@@ -33,6 +53,7 @@ pub enum Keyword {
     String,
     Integer,
     Real,
+    Blob,
     Boolean,
     Timestamp,
     PrimaryKey,
@@ -49,6 +70,7 @@ pub fn get_keyword(token_str: &str) -> Option<Keyword> {
         "int" => Some(Keyword::Integer),
         "real" => Some(Keyword::Real),
         "bool" => Some(Keyword::Boolean),
+        "blob" => Some(Keyword::Blob),
         "timestamp" => Some(Keyword::Timestamp),
         "primary_key" => Some(Keyword::PrimaryKey),
         "auto_increment" => Some(Keyword::AutoIncrement),
@@ -118,7 +140,7 @@ pub fn tokenize_line(line: &str, line_number: usize) -> Result<Vec<Token>, Token
                 '\'' => in_string_literal = true,
                 '.' | '_' if !buffer.is_empty() => {
                     buffer.push(ch);
-                },
+                }
                 '-' if buffer.is_empty() => {
                     if let Some(next_char) = chars.peek() {
                         if next_char.is_numeric() {
@@ -133,16 +155,14 @@ pub fn tokenize_line(line: &str, line_number: usize) -> Result<Vec<Token>, Token
                     } else {
                         return Err(TokenizationError::UnexpectedEndOfInput);
                     }
-                },
-                ch if ch.is_alphanumeric() => {
-                    buffer.push(ch)
-                },
+                }
+                ch if ch.is_alphanumeric() => buffer.push(ch),
                 _ => {
                     if !buffer.is_empty() {
                         tokens.push(get_token(&buffer));
                         buffer.clear();
                     }
-        
+
                     let token = match ch {
                         ':' => Token::Colon,
                         ',' => Token::Comma,
@@ -158,7 +178,7 @@ pub fn tokenize_line(line: &str, line_number: usize) -> Result<Vec<Token>, Token
                             });
                         }
                     };
-        
+
                     tokens.push(token);
                 }
             }
@@ -185,7 +205,7 @@ pub fn get_token(token_str: &str) -> Token {
     }
 
     if is_boolean(token_str) {
-        return Token::Boolean(if token_str == "true" { true } else { false });
+        return Token::Boolean(token_str == "true");
     }
 
     if let Ok(integer) = token_str.parse::<i64>() {
@@ -204,10 +224,10 @@ fn test_tokenizer() {
     let code = r#"
 # Enum for user types
 enum user_type {
-  admin,
-  developer,
-  normal,
-  guest,
+  admin
+  developer
+  normal
+  guest
 }
 
 # Model declaration for 'user'
@@ -256,13 +276,9 @@ index user_post {
             Token::Identifier(String::from("user_type"),),
             Token::BraceOpen,
             Token::Identifier(String::from("admin"),),
-            Token::Comma,
             Token::Identifier(String::from("developer"),),
-            Token::Comma,
             Token::Identifier(String::from("normal"),),
-            Token::Comma,
             Token::Identifier(String::from("guest"),),
-            Token::Comma,
             Token::BraceClose,
             Token::Keyword(Keyword::Model),
             Token::Identifier(String::from("user")),

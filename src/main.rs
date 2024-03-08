@@ -2,25 +2,35 @@
 
 fn main() {
     let code = r#"
-    
-    # TODO: rules
-
-    rule create user {
-      true
+    # Enum for user types
+    # Enum for user types
+    enum user_type {
+      admin
+      developer
+      normal
+      guest
     }
-
-    rule update user {
-      if(user.is_active, 
-        and(
-          not(matches(user.type, user_type.guest)),
-          user.is_verified,
-        )
-      )
-    }
-
     
+    # Model declaration for 'user'
+    model user {
+      id: int primary_key auto_increment,
+      username: str unique,
+      email: str unique, # this is an inline comment
+      age: int min(12),
+      is_active: bool default(false),
+    }
+    
+    # Model declaration for 'post'
+    model post {
+      id: int primary_key auto_increment,
+      title: str default('New Post'),
+      content: str,
+      rating: real default(-0.0),
+      author_id: int foreign_key(user.id),
+      created_at: timestamp default(now()),
+    }
     "#;
 
-    let tokens = rayql::tokenizer::tokenize(code).unwrap();
-    println!("{:#?}", tokens);
+    let schema = rayql::parser::parse(code).unwrap();
+    println!("{:#?}", schema);
 }
