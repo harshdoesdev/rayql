@@ -1,5 +1,7 @@
 use rayql::tokenizer::{tokenize, Keyword, Token, TokenizationError};
 
+// todo: shift data type to sep file, impl parser under schema
+
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ParseError {
     #[error("Tokenization Error: {0}")]
@@ -10,48 +12,7 @@ pub enum ParseError {
     UnexpectedEndOfTokens,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct Enum {
-    pub name: String,
-    pub variants: Vec<String>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum DataType {
-    String,
-    Integer,
-    Real,
-    Blob,
-    Boolean,
-    Timestamp,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct Field {
-    pub name: String,
-    pub data_type: DataType,
-    pub properties: Vec<String>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct Model {
-    pub name: String,
-    pub fields: Vec<Field>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Schema {
-    pub models: Vec<Model>,
-    pub enums: Vec<Enum>,
-}
-
-impl Schema {
-    pub fn new(models: Vec<Model>, enums: Vec<Enum>) -> Self {
-        Schema { models, enums }
-    }
-}
-
-pub fn parse(input: &str) -> Result<Schema, ParseError> {
+pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
     let tokens = tokenize(input)?;
     let mut models = Vec::new();
     let mut enums = Vec::new();
@@ -71,19 +32,19 @@ pub fn parse(input: &str) -> Result<Schema, ParseError> {
         }
     }
 
-    Ok(Schema::new(models, enums))
+    Ok(rayql::Schema::new(models, enums))
 }
 
 fn parse_enum(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<Enum, ParseError> {
+) -> Result<rayql::Enum, ParseError> {
     let enum_name = get_name(tokens_iter.next())?;
 
     assert_definition_begin(tokens_iter.next())?;
 
     let mut variants = vec![];
 
-    for token in tokens_iter.by_ref() {
+    while let Some(token) = tokens_iter.next() {
         match token {
             Token::BraceClose => break,
             Token::Identifier(variant) => variants.push(variant.clone()),
@@ -91,7 +52,7 @@ fn parse_enum(
         }
     }
 
-    Ok(Enum {
+    Ok(rayql::Enum {
         name: enum_name,
         variants,
     })
@@ -99,7 +60,7 @@ fn parse_enum(
 
 fn parse_model(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<Model, ParseError> {
+) -> Result<rayql::Model, ParseError> {
     let model_name = get_name(tokens_iter.next())?;
 
     assert_definition_begin(tokens_iter.next())?;
@@ -123,7 +84,7 @@ fn parse_model(
         }
     }
 
-    Ok(Model {
+    Ok(rayql::Model {
         name: model_name,
         fields,
     })
@@ -132,7 +93,7 @@ fn parse_model(
 fn parse_field(
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<Field, ParseError> {
+) -> Result<rayql::Field, ParseError> {
     let data_type = get_data_type(tokens_iter.next())?;
 
     let properties = vec![];
@@ -143,23 +104,23 @@ fn parse_field(
         }
     }
 
-    Ok(Field {
+    Ok(rayql::Field {
         name,
         data_type,
         properties,
     })
 }
 
-fn get_data_type(token: Option<&Token>) -> Result<DataType, ParseError> {
+fn get_data_type(token: Option<&Token>) -> Result<rayql::types::DataType, ParseError> {
     if let Some(token) = token {
         let data_type = match token {
             Token::Keyword(keyword) => match keyword {
-                Keyword::String => DataType::String,
-                Keyword::Integer => DataType::Integer,
-                Keyword::Real => DataType::Real,
-                Keyword::Boolean => DataType::Boolean,
-                Keyword::Blob => DataType::Blob,
-                Keyword::Timestamp => DataType::Timestamp,
+                Keyword::String => rayql::types::DataType::String,
+                Keyword::Integer => rayql::types::DataType::Integer,
+                Keyword::Real => rayql::types::DataType::Real,
+                Keyword::Boolean => rayql::types::DataType::Boolean,
+                Keyword::Blob => rayql::types::DataType::Blob,
+                Keyword::Timestamp => rayql::types::DataType::Timestamp,
                 _ => unimplemented!("Unexpected data type"),
             },
             _ => return Err(ParseError::UnexpectedToken(token.clone())),
