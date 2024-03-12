@@ -27,4 +27,8 @@ impl Schema {
     pub fn new(models: Vec<Model>, enums: Vec<Enum>) -> Self {
         Schema { models, enums }
     }
+
+    pub fn parse(input: &str) -> Result<rayql::Schema, rayql::ParseError> {
+        rayql::parser::parse(input)
+    }
 }

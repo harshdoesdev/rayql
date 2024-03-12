@@ -1,36 +1,25 @@
-// https://github.com/tursodatabase/libsql-client-rs
-
 fn main() {
-    let code = r#"
-    # Enum for user types
-    # Enum for user types
-    enum user_type {
-      admin
-      developer
-      normal
-      guest
+    // Extracting filename from CLI arguments
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 3 {
+        eprintln!("Usage: rayql parse <filename>");
+        std::process::exit(1);
     }
-    
-    # Model declaration for 'user'
-    model user {
-      id: int primary_key auto_increment,
-      username: str unique,
-      email: str unique, # this is an inline comment
-      age: int min(12),
-      is_active: bool default(false),
-    }
-    
-    # Model declaration for 'post'
-    model post {
-      id: int primary_key auto_increment,
-      title: str default('New Post'),
-      content: str,
-      rating: real default(-0.0),
-      author_id: int foreign_key(user.id),
-      created_at: timestamp default(now()),
-    }
-    "#;
+    let filename = &args[2];
+    let current_dir = std::env::current_dir().expect("Failed to read current dir.");
 
-    let schema = rayql::parser::parse(code).unwrap();
-    println!("{:#?}", schema);
+    // Read content from file
+    let code = match std::fs::read_to_string(current_dir.join(filename)) {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("Error reading file: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // Parsing schema
+    match rayql::Schema::parse(&code) {
+        Ok(schema) => println!("{:#?}", schema),
+        Err(err) => eprintln!("Error parsing schema: {:?}", err),
+    };
 }

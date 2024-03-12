@@ -1,4 +1,4 @@
-use rayql::tokenizer::{tokenize, Keyword, Token, TokenizationError};
+use rayql::parser::tokenizer::{tokenize, Keyword, Token, TokenizationError};
 
 // todo: shift data type to sep file, impl parser under schema
 

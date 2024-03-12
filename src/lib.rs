@@ -1,7 +1,8 @@
 extern crate self as rayql;
 
-pub mod parser;
-pub mod tokenizer;
+mod parser;
+
+pub use parser::ParseError;
 
 mod schema;
 pub mod types;
