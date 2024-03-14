@@ -5,10 +5,23 @@ pub struct Enum {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum PropertyValue {
+    Identifier(String),
+    FunctionCall(FunctionCall),
+    Value(rayql::value::Value),
+    PrimaryKey,
+    AutoIncrement,
+    Unique,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct FunctionCall(pub String, pub Vec<PropertyValue>);
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Field {
     pub name: String,
     pub data_type: rayql::types::DataType,
-    pub properties: Vec<String>,
+    pub properties: Vec<PropertyValue>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
