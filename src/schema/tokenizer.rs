@@ -150,7 +150,7 @@ pub fn tokenize_line(
                 }
                 '-' if buffer.is_empty() => {
                     if let Some(next_char) = chars.peek() {
-                        if next_char.is_numeric() {
+                        if next_char.is_numeric() || next_char.eq(&'.') {
                             buffer.push(ch);
                         } else {
                             return Err(TokenizationError::UnexpectedCharacter {

@@ -3,6 +3,7 @@ mod tokenizer;
 mod utils;
 
 pub use parser::{parse, ParseError};
+pub use tokenizer::TokenizationError;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Enum {

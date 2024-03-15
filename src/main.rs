@@ -20,6 +20,6 @@ fn main() {
     // Parsing schema
     match rayql::Schema::parse(&code) {
         Ok(schema) => println!("{:#?}", schema),
-        Err(err) => eprintln!("Error parsing schema: {:?}", err),
+        Err(err) => eprintln!("{}", rayql::error::generate_error_message(&err, &code)),
     };
 }
