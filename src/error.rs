@@ -42,6 +42,8 @@ fn generate_character_error_message(char: char, line: usize, col: usize, code: &
                 char, line, col
             ));
             formatted_code.push_str(&format!("{}\n", line_content));
+            let caret_spacing = " ".repeat(col - 1);
+            formatted_code.push_str(&format!("{}^", caret_spacing));
         }
     }
     formatted_code
