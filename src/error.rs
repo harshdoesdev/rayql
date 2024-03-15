@@ -11,10 +11,10 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             line_number,
             column,
         } => format!(
-            "Unexpected token {:?} at line {}, column {}",
+            "\x1b[31mUnexpected token {:?} at line {}, column {}\x1b[0m",
             token, line_number, column
         ),
-        ParseError::UnexpectedEndOfTokens => "Unexpected end of tokens".to_string(),
+        ParseError::UnexpectedEndOfTokens => "\x1b[31mUnexpected end of tokens\x1b[0m".to_string(),
     }
 }
 
@@ -27,9 +27,9 @@ fn generate_tokenization_error_message(
             generate_character_error_message(*char, *line, *col, code)
         }
         TokenizationError::StringLiteralOpened { line, col } => {
-            format!("String literal opened at line {}, column {}", line, col)
+            format!("\x1b[31mString literal opened at line {}, column {}\x1b[0m", line, col)
         }
-        TokenizationError::UnexpectedEndOfInput => "Unexpected end of input".to_string(),
+        TokenizationError::UnexpectedEndOfInput => "\x1b[31mUnexpected end of input\x1b[0m".to_string(),
     }
 }
 
@@ -38,7 +38,7 @@ fn generate_character_error_message(char: char, line: usize, col: usize, code: &
     for (line_number, line_content) in code.lines().enumerate() {
         if line_number + 1 == line {
             formatted_code.push_str(&format!(
-                "Error: Unexpected character '{}' at line {}, column {}\n",
+                "\x1b[31mError: Unexpected character '{}' at line {}, column {}\x1b[0m\n",
                 char, line, col
             ));
             formatted_code.push_str(&format!("{}\n", line_content));
