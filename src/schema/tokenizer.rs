@@ -131,7 +131,7 @@ pub fn tokenize_line(
                 tokens.push((
                     Token::StringLiteral(buffer.clone()),
                     line_number,
-                    column_number,
+                    column_number - buffer.len(),
                 ));
                 buffer.clear();
             } else {
@@ -139,7 +139,7 @@ pub fn tokenize_line(
             }
         } else if ch.is_whitespace() {
             if !buffer.is_empty() {
-                tokens.push((get_token(&buffer), line_number, column_number));
+                tokens.push((get_token(&buffer), line_number, column_number - buffer.len()));
                 buffer.clear();
             }
         } else {
@@ -166,7 +166,7 @@ pub fn tokenize_line(
                 ch if ch.is_alphanumeric() => buffer.push(ch),
                 _ => {
                     if !buffer.is_empty() {
-                        tokens.push((get_token(&buffer), line_number, column_number));
+                        tokens.push((get_token(&buffer), line_number, column_number - buffer.len()));
                         buffer.clear();
                     }
 
@@ -200,7 +200,7 @@ pub fn tokenize_line(
     }
 
     if !buffer.is_empty() {
-        tokens.push((get_token(&buffer), line_number, column_number));
+        tokens.push((get_token(&buffer), line_number, column_number - buffer.len()));
     }
 
     Ok(tokens)
