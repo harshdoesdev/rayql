@@ -5,8 +5,12 @@ use rayql::schema::utils::{get_data_type, get_model_or_enum_name};
 pub enum ParseError {
     #[error("Tokenization Error: {0}")]
     TokenizationError(#[from] TokenizationError),
-    #[error("Unexpected Token: {0}")]
-    UnexpectedToken(Token),
+    #[error("Unexpected Token")]
+    UnexpectedToken {
+        token: Token,
+        line_number: usize,
+        column: usize,
+    },
     #[error("Unexpected End of Tokens")]
     UnexpectedEndOfTokens,
 }
@@ -17,7 +21,7 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
     let mut enums = Vec::new();
     let mut tokens_iter = tokens.iter().peekable();
 
-    while let Some(token) = tokens_iter.next() {
+    while let Some((token, line_number, col)) = tokens_iter.next() {
         match token {
             Token::Keyword(Keyword::Enum) => {
                 let enum_declaration = parse_enum(&mut tokens_iter)?;
@@ -27,7 +31,13 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
                 let model_declaration = parse_model(&mut tokens_iter)?;
                 models.push(model_declaration);
             }
-            _ => return Err(ParseError::UnexpectedToken(token.clone())),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    token: token.clone(),
+                    line_number: line_number.clone(),
+                    column: col.clone(),
+                })
+            }
         }
     }
 
@@ -35,13 +45,13 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
 }
 
 fn parse_enum(
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
+    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Enum, ParseError> {
     let enum_name = get_model_or_enum_name(tokens_iter)?;
 
     let mut variants = vec![];
 
-    for token in tokens_iter.by_ref() {
+    for (token, line_number, col) in tokens_iter.by_ref() {
         match token {
             Token::BraceClose => {
                 return Ok(rayql::schema::Enum {
@@ -50,7 +60,13 @@ fn parse_enum(
                 })
             }
             Token::Identifier(variant) => variants.push(variant.clone()),
-            _ => return Err(ParseError::UnexpectedToken(token.clone())),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    token: token.clone(),
+                    line_number: line_number.clone(),
+                    column: col.clone(),
+                })
+            }
         }
     }
 
@@ -58,13 +74,13 @@ fn parse_enum(
 }
 
 fn parse_model(
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
+    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Model, ParseError> {
     let model_name = get_model_or_enum_name(tokens_iter)?;
 
     let mut fields = vec![];
 
-    while let Some(token) = tokens_iter.next() {
+    while let Some((token, line_number, col)) = tokens_iter.next() {
         match token {
             Token::BraceClose => {
                 return Ok(rayql::schema::Model {
@@ -73,16 +89,26 @@ fn parse_model(
                 })
             }
             Token::Identifier(identifier) => match tokens_iter.next() {
-                Some(Token::Colon) => {
+                Some((Token::Colon, _, _)) => {
                     let field = parse_field(identifier.clone(), tokens_iter)?;
                     fields.push(field);
                 }
-                Some(token) => {
-                    return Err(ParseError::UnexpectedToken(token.clone()));
+                Some((token, line_number, col)) => {
+                    return Err(ParseError::UnexpectedToken {
+                        token: token.clone(),
+                        line_number: line_number.clone(),
+                        column: col.clone(),
+                    });
                 }
                 None => return Err(ParseError::UnexpectedEndOfTokens),
             },
-            _ => return Err(ParseError::UnexpectedToken(token.clone())),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    token: token.clone(),
+                    line_number: line_number.clone(),
+                    column: col.clone(),
+                })
+            }
         }
     }
 
@@ -91,13 +117,13 @@ fn parse_model(
 
 fn parse_field(
     name: String,
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
+    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Field, ParseError> {
     let data_type = get_data_type(tokens_iter.next())?;
 
     let mut properties = vec![];
 
-    while let Some(token) = tokens_iter.next() {
+    while let Some((token, line_number, col)) = tokens_iter.next() {
         match token {
             Token::Comma => {
                 return Ok(rayql::schema::Field {
@@ -107,7 +133,7 @@ fn parse_field(
                 })
             }
             Token::Identifier(identifier) => {
-                if let Some(Token::ParenOpen) = tokens_iter.peek() {
+                if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
                     tokens_iter.next();
                     properties.push(parse_function_call(identifier.clone(), tokens_iter)?);
                     continue;
@@ -124,7 +150,13 @@ fn parse_field(
             Token::Keyword(Keyword::Unique) => {
                 properties.push(rayql::schema::PropertyValue::Unique)
             }
-            _ => return Err(ParseError::UnexpectedToken(token.clone())),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    token: token.clone(),
+                    line_number: line_number.clone(),
+                    column: col.clone(),
+                })
+            }
         }
     }
 
@@ -133,17 +165,17 @@ fn parse_field(
 
 fn parse_function_call(
     name: String,
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
+    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::PropertyValue, ParseError> {
     let mut arguments: Vec<rayql::schema::PropertyValue> = vec![];
 
-    while let Some(token) = tokens_iter.next() {
+    while let Some((token, line_number, col)) = tokens_iter.next() {
         match token {
             Token::ParenClose => {
                 return Ok(rayql::schema::PropertyValue::FunctionCall(name, arguments))
             }
             Token::Identifier(identifier) => {
-                if let Some(Token::ParenOpen) = tokens_iter.peek() {
+                if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
                     tokens_iter.next();
                     arguments.push(parse_function_call(identifier.clone(), tokens_iter)?);
                     continue;
@@ -163,7 +195,13 @@ fn parse_function_call(
             Token::Boolean(b) => arguments.push(rayql::schema::PropertyValue::Value(
                 rayql::value::Value::Boolean(b.to_owned()),
             )),
-            _ => return Err(ParseError::UnexpectedToken(token.clone())),
+            _ => {
+                return Err(ParseError::UnexpectedToken {
+                    token: token.clone(),
+                    line_number: line_number.clone(),
+                    column: col.clone(),
+                })
+            }
         }
     }
 
