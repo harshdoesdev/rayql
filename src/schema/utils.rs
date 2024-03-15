@@ -17,6 +17,9 @@ pub(crate) fn get_data_type(
                 Keyword::Timestamp => rayql::types::DataType::Timestamp,
                 _ => unimplemented!("Unexpected data type"),
             },
+            Token::Optional(token) => rayql::types::DataType::Optional(Box::new(get_data_type(
+                Some(&(*token.clone(), line_number.clone(), col.clone())),
+            )?)),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
@@ -55,5 +58,22 @@ pub(crate) fn get_model_or_enum_name(
             column: col.clone(),
         }),
         None => Err(ParseError::UnexpectedEndOfTokens),
+    }
+}
+
+pub(crate) fn keyword_to_property_value(
+    keyword: Keyword,
+    line_number: &usize,
+    col: &usize,
+) -> Result<rayql::schema::PropertyValue, ParseError> {
+    match keyword {
+        Keyword::PrimaryKey => Ok(rayql::schema::PropertyValue::PrimaryKey),
+        Keyword::AutoIncrement => Ok(rayql::schema::PropertyValue::AutoIncrement),
+        Keyword::Unique => Ok(rayql::schema::PropertyValue::Unique),
+        _ => Err(ParseError::UnexpectedToken {
+            token: Token::Keyword(keyword),
+            line_number: line_number.clone(),
+            column: col.clone(),
+        }),
     }
 }

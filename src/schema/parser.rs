@@ -141,15 +141,9 @@ fn parse_field(
 
                 properties.push(rayql::schema::PropertyValue::Identifier(identifier.clone()));
             }
-            Token::Keyword(Keyword::PrimaryKey) => {
-                properties.push(rayql::schema::PropertyValue::PrimaryKey)
-            }
-            Token::Keyword(Keyword::AutoIncrement) => {
-                properties.push(rayql::schema::PropertyValue::AutoIncrement)
-            }
-            Token::Keyword(Keyword::Unique) => {
-                properties.push(rayql::schema::PropertyValue::Unique)
-            }
+            Token::Keyword(keyword) => properties.push(
+                rayql::schema::utils::keyword_to_property_value(keyword.clone(), line_number, col)?,
+            ),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),

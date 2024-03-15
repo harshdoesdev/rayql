@@ -27,9 +27,14 @@ fn generate_tokenization_error_message(
             generate_character_error_message(*char, *line, *col, code)
         }
         TokenizationError::StringLiteralOpened { line, col } => {
-            format!("\x1b[31mString literal opened at line {}, column {}\x1b[0m", line, col)
+            format!(
+                "\x1b[31mString literal opened at line {}, column {}\x1b[0m",
+                line, col
+            )
         }
-        TokenizationError::UnexpectedEndOfInput => "\x1b[31mUnexpected end of input\x1b[0m".to_string(),
+        TokenizationError::UnexpectedEndOfInput => {
+            "\x1b[31mUnexpected end of input\x1b[0m".to_string()
+        }
     }
 }
 

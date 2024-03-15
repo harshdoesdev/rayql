@@ -6,4 +6,5 @@ pub enum DataType {
     Blob,
     Boolean,
     Timestamp,
+    Optional(Box<DataType>),
 }

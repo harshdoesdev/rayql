@@ -23,6 +23,7 @@ pub enum Token {
     BraceClose,
     Colon,
     Comma,
+    Optional(Box<Token>),
 }
 
 impl std::fmt::Display for Token {
@@ -41,6 +42,7 @@ impl std::fmt::Display for Token {
             Token::BraceClose => write!(f, "}}"),
             Token::Colon => write!(f, ":"),
             Token::Comma => write!(f, ","),
+            Token::Optional(token) => write!(f, "Optional {}", token.to_string()),
         }
     }
 }
@@ -139,7 +141,11 @@ pub fn tokenize_line(
             }
         } else if ch.is_whitespace() {
             if !buffer.is_empty() {
-                tokens.push((get_token(&buffer), line_number, column_number - buffer.len()));
+                tokens.push((
+                    get_token(&buffer),
+                    line_number,
+                    column_number - buffer.len(),
+                ));
                 buffer.clear();
             }
         } else {
@@ -163,10 +169,23 @@ pub fn tokenize_line(
                         return Err(TokenizationError::UnexpectedEndOfInput);
                     }
                 }
+                '?' if !buffer.is_empty() => {
+                    let token = get_token(&buffer);
+                    tokens.push((
+                        Token::Optional(Box::new(token)),
+                        line_number,
+                        column_number - buffer.len(),
+                    ));
+                    buffer.clear();
+                }
                 ch if ch.is_alphanumeric() => buffer.push(ch),
                 _ => {
                     if !buffer.is_empty() {
-                        tokens.push((get_token(&buffer), line_number, column_number - buffer.len()));
+                        tokens.push((
+                            get_token(&buffer),
+                            line_number,
+                            column_number - buffer.len(),
+                        ));
                         buffer.clear();
                     }
 
@@ -200,7 +219,11 @@ pub fn tokenize_line(
     }
 
     if !buffer.is_empty() {
-        tokens.push((get_token(&buffer), line_number, column_number - buffer.len()));
+        tokens.push((
+            get_token(&buffer),
+            line_number,
+            column_number - buffer.len(),
+        ));
     }
 
     Ok(tokens)
