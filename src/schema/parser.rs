@@ -1,8 +1,5 @@
-mod tokenizer;
-mod utils;
-
-use tokenizer::{tokenize, Keyword, Token, TokenizationError};
-use utils::{get_data_type, get_model_or_enum_name};
+use rayql::schema::tokenizer::{tokenize, Keyword, Token, TokenizationError};
+use rayql::schema::utils::{get_data_type, get_model_or_enum_name};
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ParseError {
@@ -39,7 +36,7 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
 
 fn parse_enum(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<rayql::Enum, ParseError> {
+) -> Result<rayql::schema::Enum, ParseError> {
     let enum_name = get_model_or_enum_name(tokens_iter)?;
 
     let mut variants = vec![];
@@ -47,7 +44,7 @@ fn parse_enum(
     for token in tokens_iter.by_ref() {
         match token {
             Token::BraceClose => {
-                return Ok(rayql::Enum {
+                return Ok(rayql::schema::Enum {
                     name: enum_name,
                     variants,
                 })
@@ -62,7 +59,7 @@ fn parse_enum(
 
 fn parse_model(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<rayql::Model, ParseError> {
+) -> Result<rayql::schema::Model, ParseError> {
     let model_name = get_model_or_enum_name(tokens_iter)?;
 
     let mut fields = vec![];
@@ -70,7 +67,7 @@ fn parse_model(
     while let Some(token) = tokens_iter.next() {
         match token {
             Token::BraceClose => {
-                return Ok(rayql::Model {
+                return Ok(rayql::schema::Model {
                     name: model_name,
                     fields,
                 })
@@ -95,7 +92,7 @@ fn parse_model(
 fn parse_field(
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<rayql::Field, ParseError> {
+) -> Result<rayql::schema::Field, ParseError> {
     let data_type = get_data_type(tokens_iter.next())?;
 
     let mut properties = vec![];
@@ -103,7 +100,7 @@ fn parse_field(
     while let Some(token) = tokens_iter.next() {
         match token {
             Token::Comma => {
-                return Ok(rayql::Field {
+                return Ok(rayql::schema::Field {
                     name,
                     data_type,
                     properties,

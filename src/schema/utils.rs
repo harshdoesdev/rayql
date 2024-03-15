@@ -1,4 +1,4 @@
-use rayql::parser::{
+use rayql::schema::{
     tokenizer::{Keyword, Token},
     ParseError,
 };

@@ -267,7 +267,7 @@ index user_post {
 #}
 "#;
 
-    let tokens = rayql::parser::tokenizer::tokenize(code).unwrap();
+    let tokens = rayql::schema::tokenizer::tokenize(code).unwrap();
 
     assert_eq!(
         tokens,

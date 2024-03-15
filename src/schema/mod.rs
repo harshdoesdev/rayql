@@ -1,3 +1,9 @@
+mod parser;
+mod tokenizer;
+mod utils;
+
+pub use parser::{parse, ParseError};
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Enum {
     pub name: String,
@@ -41,7 +47,7 @@ impl Schema {
         Schema { models, enums }
     }
 
-    pub fn parse(input: &str) -> Result<rayql::Schema, rayql::ParseError> {
-        rayql::parser::parse(input)
+    pub fn parse(input: &str) -> Result<rayql::Schema, rayql::schema::ParseError> {
+        rayql::schema::parse(input)
     }
 }
