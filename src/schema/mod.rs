@@ -7,7 +7,7 @@ pub struct Enum {
 #[derive(Debug, PartialEq, Clone)]
 pub enum PropertyValue {
     Identifier(String),
-    FunctionCall(FunctionCall),
+    FunctionCall(String, Vec<PropertyValue>),
     Value(rayql::value::Value),
     PrimaryKey,
     AutoIncrement,

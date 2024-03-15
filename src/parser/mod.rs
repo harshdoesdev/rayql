@@ -112,9 +112,7 @@ fn parse_field(
             Token::Identifier(identifier) => {
                 if let Some(Token::ParenOpen) = tokens_iter.peek() {
                     tokens_iter.next();
-                    properties.push(rayql::schema::PropertyValue::FunctionCall(
-                        parse_function_call(identifier.clone(), tokens_iter)?,
-                    ));
+                    properties.push(parse_function_call(identifier.clone(), tokens_iter)?);
                     continue;
                 }
 
@@ -139,18 +137,18 @@ fn parse_field(
 fn parse_function_call(
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<Token>>,
-) -> Result<rayql::schema::FunctionCall, ParseError> {
+) -> Result<rayql::schema::PropertyValue, ParseError> {
     let mut arguments: Vec<rayql::schema::PropertyValue> = vec![];
 
     while let Some(token) = tokens_iter.next() {
         match token {
-            Token::ParenClose => return Ok(rayql::schema::FunctionCall(name, arguments)),
+            Token::ParenClose => {
+                return Ok(rayql::schema::PropertyValue::FunctionCall(name, arguments))
+            }
             Token::Identifier(identifier) => {
                 if let Some(Token::ParenOpen) = tokens_iter.peek() {
                     tokens_iter.next();
-                    arguments.push(rayql::schema::PropertyValue::FunctionCall(
-                        parse_function_call(identifier.clone(), tokens_iter)?,
-                    ));
+                    arguments.push(parse_function_call(identifier.clone(), tokens_iter)?);
                     continue;
                 }
 
