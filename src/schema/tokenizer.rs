@@ -94,7 +94,7 @@ pub fn tokenize(input: &str) -> Result<Vec<(Token, usize, usize)>, TokenizationE
             continue;
         }
 
-        tokens.extend(tokenize_line(line, line_num)?);
+        tokens.extend(tokenize_line(line, line_num + 1)?);
     }
     Ok(tokens)
 }
