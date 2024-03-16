@@ -5,7 +5,7 @@ use rayql::{
 };
 
 impl Schema {
-    pub fn to_sql(&self) -> Vec<(String, String)> {
+    pub fn to_sql(&self) -> Result<Vec<(String, String)>, rayql::sql::ToSQLError> {
         let mut sql_statements = Vec::new();
 
         for model in &self.models {
@@ -21,7 +21,9 @@ impl Schema {
                                 .iter()
                                 .map(|variant| format!("'{}'", variant))
                                 .collect(),
-                            None => panic!("Enum not found: {}", enum_name),
+                            None => {
+                                return Err(rayql::sql::ToSQLError::EnumNotFound(enum_name.clone()))
+                            }
                         };
                     field_sql.push_str(&format!(
                         " CHECK({} IN ({}))",
@@ -31,7 +33,7 @@ impl Schema {
                 }
 
                 for prop in &field.properties {
-                    field_sql.push_str(&format!(" {}", prop.to_sql()));
+                    field_sql.push_str(&format!(" {}", prop.to_sql()?));
                 }
 
                 fields_sql.push(field_sql);
@@ -44,78 +46,43 @@ impl Schema {
             sql_statements.push((model.name.clone(), model_sql));
         }
 
-        sql_statements
+        Ok(sql_statements)
     }
 }
 
 impl PropertyValue {
-    pub fn to_sql(&self) -> String {
+    pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
         match &self {
-            PropertyValue::PrimaryKey => "PRIMARY KEY".to_string(),
-            PropertyValue::AutoIncrement => "AUTOINCREMENT".to_string(),
-            PropertyValue::Unique => "UNIQUE".to_string(),
-            PropertyValue::Identifier(id) => id.clone(),
+            PropertyValue::PrimaryKey => Ok("PRIMARY KEY".to_string()),
+            PropertyValue::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
+            PropertyValue::Unique => Ok("UNIQUE".to_string()),
+            PropertyValue::Identifier(id) => Ok(id.clone()),
             PropertyValue::FunctionCall(func) => func.to_sql(),
-            PropertyValue::Value(value) => value.to_sql(),
+            PropertyValue::Value(value) => Ok(value.to_sql()),
         }
     }
 }
 
 impl FunctionCall {
-    pub fn to_sql(&self) -> String {
+    pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
         match self.name.as_str() {
-            "now" => "CURRENT_TIMESTAMP".to_string(),
+            "now" => Ok("CURRENT_TIMESTAMP".to_string()),
             "min" => {
-                let min_value = match self.arguments.first() {
-                    Some(value) => match value {
-                        PropertyValue::Value(value) => value.to_sql(),
-                        PropertyValue::FunctionCall(func) => func.to_sql(),
-                        _ => {
-                            panic!("min value must be a value, got {:?}", value)
-                        }
-                    },
-                    None => panic!("min accepts exactly 1 value."),
-                };
-
-                format!("CHECK({} >= {})", &self.property_name, min_value)
+                rayql::sql::function_to_sql::min_function(&self.property_name, &self.arguments)
             }
-            "foreign_key" => {
-                let (reference_table, reference_key) = match self.arguments.first() {
-                    Some(value) => match value {
-                        PropertyValue::Identifier(identifier) => match identifier.split_once('.') {
-                            Some(v) => v,
-                            None => panic!("Reference key not found."),
-                        },
-                        _ => panic!("foreign key value must be an identifer"),
-                    },
-                    None => panic!("foreign_key accepts exactly 1 value."),
-                };
-
-                format!("REFERENCES {}({})", reference_table, reference_key)
-            }
-            "default" => {
-                let value = match self.arguments.first() {
-                    Some(value) => match value {
-                        PropertyValue::Value(value) => value.to_sql(),
-                        PropertyValue::FunctionCall(func) => func.to_sql(),
-                        _ => {
-                            panic!("default value must be a value, got {:?}", value)
-                        }
-                    },
-                    None => panic!("default accepts exactly 1 value."),
-                };
-
-                format!("DEFAULT {}", value,)
-            }
-            _ => {
-                format!("{}({})", self.name, self.arguments.to_sql().join(", "))
-            }
+            "foreign_key" => rayql::sql::function_to_sql::foreign_key(&self.arguments),
+            "default" => rayql::sql::function_to_sql::default_fn(&self.arguments),
+            _ => Ok(format!(
+                "{}({})",
+                self.name,
+                self.arguments.to_sql()?.join(", ")
+            )),
         }
     }
 }
 
 impl Arguments {
-    pub fn to_sql(&self) -> Vec<String> {
+    pub fn to_sql(&self) -> Result<Vec<String>, rayql::sql::ToSQLError> {
         self.0.iter().map(|arg| arg.to_sql()).collect()
     }
 }

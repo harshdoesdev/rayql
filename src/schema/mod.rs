@@ -49,6 +49,8 @@ impl Arguments {
     pub fn first(&self) -> Option<&PropertyValue> {
         self.0.first()
     }
+
+    // nth_of_type
 }
 
 #[derive(Debug, PartialEq, Clone)]
