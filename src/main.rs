@@ -5,6 +5,7 @@ fn main() {
         eprintln!("Usage: rayql parse <filename>");
         std::process::exit(1);
     }
+    let sub_command = args[1].as_str();
     let filename = &args[2];
     let current_dir = std::env::current_dir().expect("Failed to read current dir.");
 
@@ -19,7 +20,34 @@ fn main() {
 
     // Parsing schema
     match rayql::Schema::parse(&code) {
-        Ok(schema) => println!("{:#?}", schema),
+        Ok(schema) => match sub_command {
+            "parse" => println!("{:#?}", schema),
+            "generate" => {
+                let sql_statements = schema.generate_sql();
+                let output = sql_statements
+                    .iter()
+                    .map(|(model_name, sql_statement)| {
+                        format!(
+                            "-- CREATE TABLE FOR MODEL `{}`\n\n{}\n",
+                            model_name, sql_statement
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                let output_dir = current_dir.join("migrations");
+
+                if !output_dir.exists() {
+                    std::fs::create_dir(&output_dir)
+                        .expect("Could not create migrations directory.");
+                }
+
+                let output_file = output_dir.join("000-migrations.sql");
+
+                std::fs::write(output_file, output).expect("Could not write SQL migrations file.");
+            }
+            _ => eprintln!("Unknown command {sub_command}"),
+        },
         Err(err) => eprintln!("{}", rayql::error::generate_error_message(&err, &code)),
     };
 }

@@ -14,7 +14,6 @@ pub enum TokenizationError {
 pub enum Token {
     Identifier(String),
     StringLiteral(String),
-    Text(String),
     Integer(i64),
     Real(f64),
     Boolean(bool),
@@ -33,7 +32,6 @@ impl std::fmt::Display for Token {
         match self {
             Token::Identifier(s) => write!(f, "Identifier: {}", s),
             Token::StringLiteral(s) => write!(f, "StringLiteral: {}", s),
-            Token::Text(s) => write!(f, "Text: {}", s),
             Token::Integer(i) => write!(f, "Integer: {}", i),
             Token::Real(r) => write!(f, "Real: {}", r),
             Token::Boolean(b) => write!(f, "Boolean: {}", b),
