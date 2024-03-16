@@ -44,16 +44,16 @@ pub fn min_function(
                         "min value must be a value, got {:?}",
                         value
                     )),
-                    line_number: arguments.line_number.clone(),
-                    column_number: arguments.column_number.clone(),
+                    line_number: arguments.line_number,
+                    column_number: arguments.column_number,
                 })
             }
         },
         None => {
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::MissingArgument,
-                line_number: arguments.line_number.clone(),
-                column_number: arguments.column_number.clone(),
+                line_number: arguments.line_number,
+                column_number: arguments.column_number,
             })
         }
     }?;

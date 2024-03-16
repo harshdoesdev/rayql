@@ -75,7 +75,7 @@ impl FunctionCall {
     ) -> Self {
         FunctionCall {
             name,
-            arguments: Arguments::from_vec(arguments, line_number.clone(), column_number.clone()),
+            arguments: Arguments::from_vec(arguments, line_number, column_number),
             property_name,
             line_number,
             column_number,
