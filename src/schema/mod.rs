@@ -102,8 +102,6 @@ impl Arguments {
     pub fn first(&self) -> Option<&Argument> {
         self.list.first()
     }
-
-    // nth_of_type
 }
 
 #[derive(Debug, PartialEq, Clone)]

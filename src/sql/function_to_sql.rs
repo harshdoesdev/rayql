@@ -8,6 +8,7 @@ pub enum FunctionError {
     InvalidArgument(String),
     MissingArgument,
     ExpectsExactlyOneArgument(String),
+    UndefinedFunction(String),
 }
 
 impl std::fmt::Display for FunctionError {
@@ -21,6 +22,9 @@ impl std::fmt::Display for FunctionError {
             }
             FunctionError::ExpectsExactlyOneArgument(func) => {
                 write!(f, "{func} exactly one argument")
+            }
+            FunctionError::UndefinedFunction(func) => {
+                write!(f, "Undefined function called '{func}'")
             }
         }
     }

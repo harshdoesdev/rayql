@@ -114,5 +114,11 @@ fn pretty_function_error_message(
                 line_number, column_number
             )
         }
+        FunctionError::UndefinedFunction(func) => {
+            format!(
+                "\x1b[31mUndefined function '{func}' called at line {}, column {}\x1b[0m",
+                line_number, column_number
+            )
+        }
     }
 }

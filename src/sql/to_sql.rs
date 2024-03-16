@@ -78,11 +78,11 @@ impl FunctionCall {
             }
             "foreign_key" => rayql::sql::function_to_sql::foreign_key(&self.arguments),
             "default" => rayql::sql::function_to_sql::default_fn(&self.arguments),
-            _ => Ok(format!(
-                "{}({})",
-                self.name,
-                self.arguments.to_sql()?.join(", ")
-            )),
+            _ => Err(rayql::sql::ToSQLError::FunctionError {
+                source: super::FunctionError::UndefinedFunction(self.name.clone()),
+                line_number: self.line_number,
+                column_number: self.column_number,
+            }),
         }
     }
 }
