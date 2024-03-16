@@ -24,7 +24,7 @@ pub enum PropertyValue {
 #[derive(Debug, PartialEq, Clone)]
 pub struct FunctionCall {
     pub name: String,
-    pub arguments: Vec<PropertyValue>,
+    pub arguments: Arguments,
     pub property_name: String,
 }
 
@@ -32,9 +32,22 @@ impl FunctionCall {
     pub fn new(property_name: String, name: String, arguments: Vec<PropertyValue>) -> Self {
         FunctionCall {
             name,
-            arguments,
+            arguments: Arguments::from_vec(arguments),
             property_name,
         }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Arguments(pub Vec<PropertyValue>);
+
+impl Arguments {
+    pub fn from_vec(arguments: Vec<PropertyValue>) -> Self {
+        Arguments(arguments)
+    }
+
+    pub fn first(&self) -> Option<&PropertyValue> {
+        self.0.first()
     }
 }
 

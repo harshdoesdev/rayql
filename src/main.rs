@@ -1,3 +1,4 @@
+// This stuff will go in sql::migration and cli mod
 fn main() {
     // Extracting filename from CLI arguments
     let args: Vec<String> = std::env::args().collect();

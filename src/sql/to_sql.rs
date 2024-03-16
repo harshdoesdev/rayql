@@ -1,5 +1,5 @@
 use rayql::{
-    schema::{FunctionCall, PropertyValue, Schema},
+    schema::{Arguments, FunctionCall, PropertyValue, Schema},
     types::DataType,
     Value,
 };
@@ -66,7 +66,7 @@ impl FunctionCall {
         match self.name.as_str() {
             "now" => "CURRENT_TIMESTAMP".to_string(),
             "min" => {
-                let min_value = match self.arguments.get(0) {
+                let min_value = match self.arguments.first() {
                     Some(value) => match value {
                         PropertyValue::Value(value) => value.to_sql(),
                         PropertyValue::FunctionCall(func) => func.to_sql(),
@@ -80,7 +80,7 @@ impl FunctionCall {
                 format!("CHECK({} >= {})", &self.property_name, min_value)
             }
             "foreign_key" => {
-                let (reference_table, reference_key) = match self.arguments.get(0) {
+                let (reference_table, reference_key) = match self.arguments.first() {
                     Some(value) => match value {
                         PropertyValue::Identifier(identifier) => match identifier.split_once('.') {
                             Some(v) => v,
@@ -94,7 +94,7 @@ impl FunctionCall {
                 format!("REFERENCES {}({})", reference_table, reference_key)
             }
             "default" => {
-                let value = match self.arguments.get(0) {
+                let value = match self.arguments.first() {
                     Some(value) => match value {
                         PropertyValue::Value(value) => value.to_sql(),
                         PropertyValue::FunctionCall(func) => func.to_sql(),
@@ -108,10 +108,15 @@ impl FunctionCall {
                 format!("DEFAULT {}", value,)
             }
             _ => {
-                let args_sql: Vec<String> = self.arguments.iter().map(|arg| arg.to_sql()).collect();
-                format!("{}({})", self.name, args_sql.join(", "))
+                format!("{}({})", self.name, self.arguments.to_sql().join(", "))
             }
         }
+    }
+}
+
+impl Arguments {
+    pub fn to_sql(&self) -> Vec<String> {
+        self.0.iter().map(|arg| arg.to_sql()).collect()
     }
 }
 
