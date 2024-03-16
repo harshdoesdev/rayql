@@ -2,6 +2,8 @@
 pub enum TokenizationError {
     #[error("Unexpected character '{char}' at line {line}, column {col}")]
     UnexpectedCharacter { char: char, line: usize, col: usize },
+    #[error("Unknown Escape Sequence '{char}' at line {line}, column {col}")]
+    UnknownEscapeSequence { char: char, line: usize, col: usize },
     #[error("String literal opened at line {line}, column {col}")]
     StringLiteralOpened { line: usize, col: usize },
     #[error("Unexpected End of Input")]
@@ -123,11 +125,21 @@ pub fn tokenize_line(
 
         if in_string_literal {
             if is_escaped {
-                buffer.push(ch);
-                is_escaped = false;
+                match get_escape_char(&ch) {
+                    Some(escape_ch) => {
+                        buffer.push(escape_ch);
+                        is_escaped = false;
+                    }
+                    None => {
+                        return Err(TokenizationError::UnknownEscapeSequence {
+                            char: ch.clone(),
+                            line: line_number.clone(),
+                            col: column_number.clone(),
+                        })
+                    }
+                }
             } else if ch == '\\' {
                 is_escaped = true;
-                buffer.push(ch);
             } else if ch == '\'' {
                 in_string_literal = false;
                 tokens.push((
@@ -247,6 +259,18 @@ pub fn get_token(token_str: &str) -> Token {
     }
 
     Token::Identifier(token_str.to_string())
+}
+
+fn get_escape_char(ch: &char) -> Option<char> {
+    match ch {
+        'n' => Some('\n'),
+        'r' => Some('\r'),
+        't' => Some('\t'),
+        '\\' => Some('\\'),
+        '\'' => Some('\''),
+        '"' => Some('"'),
+        _ => None,
+    }
 }
 
 // #[test]

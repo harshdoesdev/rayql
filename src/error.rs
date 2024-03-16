@@ -23,7 +23,8 @@ fn generate_tokenization_error_message(
     code: &str,
 ) -> String {
     match tokenization_error {
-        TokenizationError::UnexpectedCharacter { char, line, col } => {
+        TokenizationError::UnexpectedCharacter { char, line, col }
+        | TokenizationError::UnknownEscapeSequence { char, line, col } => {
             generate_character_error_message(*char, *line, *col, code)
         }
         TokenizationError::StringLiteralOpened { line, col } => {
