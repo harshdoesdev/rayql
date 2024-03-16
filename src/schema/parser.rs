@@ -123,16 +123,18 @@ fn parse_field(
 
     let mut properties = vec![];
 
-    while let Some((token, line_number, col)) = tokens_iter.next() {
+    while let Some((token, line_number, col)) = tokens_iter.peek() {
         match token {
             Token::Comma => {
+                tokens_iter.next();
                 return Ok(rayql::schema::Field {
                     name,
                     data_type,
                     properties,
-                })
+                });
             }
             Token::Identifier(identifier) => {
+                tokens_iter.next();
                 if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
                     tokens_iter.next();
                     properties.push(parse_function_call(identifier.clone(), tokens_iter)?);
@@ -141,9 +143,21 @@ fn parse_field(
 
                 properties.push(rayql::schema::PropertyValue::Identifier(identifier.clone()));
             }
-            Token::Keyword(keyword) => properties.push(
-                rayql::schema::utils::keyword_to_property_value(keyword.clone(), line_number, col)?,
-            ),
+            Token::Keyword(keyword) => {
+                tokens_iter.next();
+                properties.push(rayql::schema::utils::keyword_to_property_value(
+                    keyword.clone(),
+                    line_number,
+                    col,
+                )?);
+            }
+            Token::BraceClose => {
+                return Ok(rayql::schema::Field {
+                    name,
+                    data_type,
+                    properties,
+                })
+            }
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
