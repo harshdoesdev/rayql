@@ -1,6 +1,8 @@
 use rayql::schema::tokenizer::{tokenize, Keyword, Token, TokenizationError};
 use rayql::schema::utils::{get_data_type, get_model_or_enum_name};
 
+use super::Argument;
+
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ParseError {
     #[error("Tokenization Error: {0}")]
@@ -192,7 +194,7 @@ fn parse_function_call(
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::PropertyValue, ParseError> {
-    let mut arguments: Vec<rayql::schema::PropertyValue> = vec![];
+    let mut arguments: Vec<rayql::schema::Argument> = vec![];
 
     while let Some((token, line_number, col)) = tokens_iter.next() {
         match token {
@@ -208,29 +210,43 @@ fn parse_function_call(
                 ))
             }
             Token::Identifier(identifier) => {
-                if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
+                if let Some((Token::ParenOpen, line_number, column_number)) = tokens_iter.peek() {
                     tokens_iter.next();
-                    arguments.push(parse_function_call(
-                        name.clone(),
-                        identifier.clone(),
-                        tokens_iter,
-                    )?);
+                    arguments.push(Argument::new(
+                        parse_function_call(name.clone(), identifier.clone(), tokens_iter)?,
+                        *line_number,
+                        *column_number,
+                    ));
                     continue;
                 }
 
-                arguments.push(rayql::schema::PropertyValue::Identifier(identifier.clone()));
+                arguments.push(Argument::new(
+                    rayql::schema::PropertyValue::Identifier(identifier.clone()),
+                    *line_number,
+                    *col,
+                ));
             }
-            Token::StringLiteral(s) => arguments.push(rayql::schema::PropertyValue::Value(
-                rayql::value::Value::StringLiteral(s.to_string()),
+            Token::StringLiteral(s) => arguments.push(Argument::new(
+                rayql::schema::PropertyValue::Value(rayql::value::Value::StringLiteral(
+                    s.to_string(),
+                )),
+                *line_number,
+                *col,
             )),
-            Token::Integer(i) => arguments.push(rayql::schema::PropertyValue::Value(
-                rayql::value::Value::Integer(i.to_owned()),
+            Token::Integer(i) => arguments.push(Argument::new(
+                rayql::schema::PropertyValue::Value(rayql::value::Value::Integer(i.to_owned())),
+                *line_number,
+                *col,
             )),
-            Token::Real(r) => arguments.push(rayql::schema::PropertyValue::Value(
-                rayql::value::Value::Real(r.to_owned()),
+            Token::Real(r) => arguments.push(Argument::new(
+                rayql::schema::PropertyValue::Value(rayql::value::Value::Real(r.to_owned())),
+                *line_number,
+                *col,
             )),
-            Token::Boolean(b) => arguments.push(rayql::schema::PropertyValue::Value(
-                rayql::value::Value::Boolean(b.to_owned()),
+            Token::Boolean(b) => arguments.push(Argument::new(
+                rayql::schema::PropertyValue::Value(rayql::value::Value::Boolean(b.to_owned())),
+                *line_number,
+                *col,
             )),
             _ => {
                 return Err(ParseError::UnexpectedToken {

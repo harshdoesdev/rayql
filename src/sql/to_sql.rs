@@ -1,5 +1,5 @@
 use rayql::{
-    schema::{Arguments, FunctionCall, PropertyValue, Schema},
+    schema::{Argument, Arguments, FunctionCall, PropertyValue, Schema},
     types::DataType,
     Value,
 };
@@ -90,6 +90,12 @@ impl FunctionCall {
 impl Arguments {
     pub fn to_sql(&self) -> Result<Vec<String>, rayql::sql::ToSQLError> {
         self.list.iter().map(|arg| arg.to_sql()).collect()
+    }
+}
+
+impl Argument {
+    pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
+        self.value.to_sql()
     }
 }
 

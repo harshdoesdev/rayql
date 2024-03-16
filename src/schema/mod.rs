@@ -69,7 +69,7 @@ impl FunctionCall {
     pub fn new(
         property_name: String,
         name: String,
-        arguments: Vec<PropertyValue>,
+        arguments: Vec<Argument>,
         line_number: usize,
         column_number: usize,
     ) -> Self {
@@ -85,17 +85,13 @@ impl FunctionCall {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Arguments {
-    pub list: Vec<PropertyValue>,
+    pub list: Vec<Argument>,
     pub line_number: usize,
     pub column_number: usize,
 }
 
 impl Arguments {
-    pub fn from_vec(
-        arguments: Vec<PropertyValue>,
-        line_number: usize,
-        column_number: usize,
-    ) -> Self {
+    pub fn from_vec(arguments: Vec<Argument>, line_number: usize, column_number: usize) -> Self {
         Arguments {
             list: arguments,
             line_number,
@@ -103,11 +99,28 @@ impl Arguments {
         }
     }
 
-    pub fn first(&self) -> Option<&PropertyValue> {
+    pub fn first(&self) -> Option<&Argument> {
         self.list.first()
     }
 
     // nth_of_type
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Argument {
+    pub value: PropertyValue,
+    pub line_number: usize,
+    pub column_number: usize,
+}
+
+impl Argument {
+    pub fn new(value: PropertyValue, line_number: usize, column_number: usize) -> Self {
+        Argument {
+            value,
+            line_number,
+            column_number,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
