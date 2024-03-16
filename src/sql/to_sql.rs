@@ -31,22 +31,9 @@ impl Schema {
                 }
 
                 for prop in &field.properties {
-                    match prop {
-                        PropertyValue::PrimaryKey => {
-                            field_sql.push_str(" PRIMARY KEY");
-                        }
-                        PropertyValue::AutoIncrement => {
-                            field_sql.push_str(" AUTOINCREMENT");
-                        }
-                        PropertyValue::Unique => {
-                            field_sql.push_str(" UNIQUE");
-                        }
-                        PropertyValue::FunctionCall(function_call) => {
-                            field_sql.push_str(&format!(" {}", function_call.to_sql()));
-                        }
-                        _ => {}
-                    }
+                    field_sql.push_str(&format!(" {}", prop.to_sql()));
                 }
+
                 fields_sql.push(field_sql);
             }
             let model_sql = format!(
@@ -64,10 +51,12 @@ impl Schema {
 impl PropertyValue {
     pub fn to_sql(&self) -> String {
         match &self {
+            PropertyValue::PrimaryKey => "PRIMARY KEY".to_string(),
+            PropertyValue::AutoIncrement => "AUTOINCREMENT".to_string(),
+            PropertyValue::Unique => "UNIQUE".to_string(),
             PropertyValue::Identifier(id) => id.clone(),
             PropertyValue::FunctionCall(func) => func.to_sql(),
             PropertyValue::Value(value) => value.to_sql(),
-            _ => "".to_string(),
         }
     }
 }
@@ -138,7 +127,13 @@ impl Value {
                     format!("{:.}", f)
                 }
             }
-            Value::Boolean(b) => if *b { "1".to_string() } else { "0".to_string() },
+            Value::Boolean(b) => {
+                if *b {
+                    "1".to_string()
+                } else {
+                    "0".to_string()
+                }
+            }
         }
     }
 }
