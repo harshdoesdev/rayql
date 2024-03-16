@@ -20,6 +20,7 @@ pub(crate) fn get_data_type(
             Token::Optional(token) => rayql::types::DataType::Optional(Box::new(get_data_type(
                 Some(&(*token.clone(), line_number.clone(), col.clone())),
             )?)),
+            Token::Identifier(identifier) => rayql::types::DataType::UserDefined(identifier.clone()),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),

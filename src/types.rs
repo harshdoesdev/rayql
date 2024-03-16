@@ -7,4 +7,5 @@ pub enum DataType {
     Boolean,
     Timestamp,
     Optional(Box<DataType>),
+    UserDefined(String),
 }
