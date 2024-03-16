@@ -128,17 +128,17 @@ impl FunctionCall {
 
 impl Value {
     pub fn to_sql(&self) -> String {
-        match &self {
+        match self {
             Value::StringLiteral(s) => format!("'{}'", s),
             Value::Integer(i) => i.to_string(),
             Value::Real(f) => {
-                if f.eq(&0.0) {
+                if *f == 0.0 {
                     "0.0".to_string()
                 } else {
-                    f.to_string()
+                    format!("{:.}", f)
                 }
             }
-            Value::Boolean(b) => if *b { 1 } else { 0 }.to_string(),
+            Value::Boolean(b) => if *b { "1".to_string() } else { "0".to_string() },
         }
     }
 }
