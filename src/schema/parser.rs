@@ -222,6 +222,10 @@ fn parse_function_call(
                 })
             }
         }
+
+        if let Some((Token::Comma, _, _)) = tokens_iter.peek() {
+            tokens_iter.next();
+        }
     }
 
     Err(ParseError::UnexpectedEndOfTokens)
