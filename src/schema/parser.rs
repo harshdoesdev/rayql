@@ -34,8 +34,8 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: line_number.clone(),
-                    column: col.clone(),
+                    line_number: *line_number,
+                    column: *col,
                 })
             }
         }
@@ -63,8 +63,8 @@ fn parse_enum(
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: line_number.clone(),
-                    column: col.clone(),
+                    line_number: *line_number,
+                    column: *col,
                 })
             }
         }
@@ -96,8 +96,8 @@ fn parse_model(
                 Some((token, line_number, col)) => {
                     return Err(ParseError::UnexpectedToken {
                         token: token.clone(),
-                        line_number: line_number.clone(),
-                        column: col.clone(),
+                        line_number: *line_number,
+                        column: *col,
                     });
                 }
                 None => return Err(ParseError::UnexpectedEndOfTokens),
@@ -105,8 +105,8 @@ fn parse_model(
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: line_number.clone(),
-                    column: col.clone(),
+                    line_number: *line_number,
+                    column: *col,
                 })
             }
         }
@@ -165,8 +165,8 @@ fn parse_field(
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: line_number.clone(),
-                    column: col.clone(),
+                    line_number: *line_number,
+                    column: *col,
                 })
             }
         }
@@ -217,8 +217,8 @@ fn parse_function_call(
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: line_number.clone(),
-                    column: col.clone(),
+                    line_number: *line_number,
+                    column: *col,
                 })
             }
         }

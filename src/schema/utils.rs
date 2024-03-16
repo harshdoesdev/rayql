@@ -18,14 +18,14 @@ pub(crate) fn get_data_type(
                 _ => unimplemented!("Unexpected data type"),
             },
             Token::Optional(token) => rayql::types::DataType::Optional(Box::new(get_data_type(
-                Some(&(*token.clone(), line_number.clone(), col.clone())),
+                Some(&(*token.clone(), *line_number, *col)),
             )?)),
             Token::Identifier(identifier) => rayql::types::DataType::Enum(identifier.clone()),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: line_number.clone(),
-                    column: col.clone(),
+                    line_number: *line_number,
+                    column: *col,
                 })
             }
         };
@@ -44,8 +44,8 @@ pub(crate) fn get_model_or_enum_name(
         Some((token, line_number, col)) => {
             return Err(ParseError::UnexpectedToken {
                 token: token.clone(),
-                line_number: line_number.clone(),
-                column: col.clone(),
+                line_number: *line_number,
+                column: *col,
             })
         }
         None => return Err(ParseError::UnexpectedEndOfTokens),
@@ -55,8 +55,8 @@ pub(crate) fn get_model_or_enum_name(
         Some((Token::BraceOpen, _, _)) => Ok(name),
         Some((token, line_number, col)) => Err(ParseError::UnexpectedToken {
             token: token.clone(),
-            line_number: line_number.clone(),
-            column: col.clone(),
+            line_number: *line_number,
+            column: *col,
         }),
         None => Err(ParseError::UnexpectedEndOfTokens),
     }
@@ -73,8 +73,8 @@ pub(crate) fn keyword_to_property_value(
         Keyword::Unique => Ok(rayql::schema::PropertyValue::Unique),
         _ => Err(ParseError::UnexpectedToken {
             token: Token::Keyword(keyword),
-            line_number: line_number.clone(),
-            column: col.clone(),
+            line_number: *line_number,
+            column: *col,
         }),
     }
 }

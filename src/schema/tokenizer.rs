@@ -42,7 +42,7 @@ impl std::fmt::Display for Token {
             Token::BraceClose => write!(f, "}}"),
             Token::Colon => write!(f, ":"),
             Token::Comma => write!(f, ","),
-            Token::Optional(token) => write!(f, "Optional {}", token.to_string()),
+            Token::Optional(token) => write!(f, "Optional {}", token),
         }
     }
 }
@@ -130,9 +130,9 @@ pub fn tokenize_line(
                     }
                     None => {
                         return Err(TokenizationError::UnknownEscapeSequence {
-                            char: ch.clone(),
-                            line: line_number.clone(),
-                            col: column_number.clone(),
+                            char: ch,
+                            line: line_number,
+                            col: column_number,
                         })
                     }
                 }
