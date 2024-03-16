@@ -39,13 +39,13 @@ pub struct Model {
 
 #[derive(Debug, PartialEq)]
 pub struct Schema {
-    pub models: Vec<Model>,
     pub enums: Vec<Enum>,
+    pub models: Vec<Model>,
 }
 
 impl Schema {
-    pub fn new(models: Vec<Model>, enums: Vec<Enum>) -> Self {
-        Schema { models, enums }
+    pub fn new(enums: Vec<Enum>, models: Vec<Model>) -> Self {
+        Schema { enums, models }
     }
 
     pub fn parse(input: &str) -> Result<rayql::Schema, rayql::schema::ParseError> {

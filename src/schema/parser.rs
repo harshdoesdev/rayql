@@ -41,7 +41,7 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
         }
     }
 
-    Ok(rayql::Schema::new(models, enums))
+    Ok(rayql::Schema::new(enums, models))
 }
 
 fn parse_enum(
