@@ -1,10 +1,8 @@
 use rayql::{
-    schema::{Argument, Arguments, FunctionCall, PropertyValue, Schema},
+    schema::{Argument, Arguments, EnumVariant, FunctionCall, PropertyValue, Schema},
     types::DataType,
     Value,
 };
-
-use crate::schema::EnumVariant;
 
 impl Schema {
     pub fn to_sql(&self) -> Result<Vec<(String, String)>, rayql::sql::ToSQLError> {
@@ -79,7 +77,7 @@ impl FunctionCall {
             "foreign_key" => rayql::sql::function_to_sql::foreign_key(&self.arguments),
             "default" => rayql::sql::function_to_sql::default_fn(&self.arguments),
             _ => Err(rayql::sql::ToSQLError::FunctionError {
-                source: super::FunctionError::UndefinedFunction(self.name.clone()),
+                source: rayql::sql::FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,
                 column_number: self.column_number,
             }),
