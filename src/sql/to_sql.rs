@@ -74,6 +74,9 @@ impl FunctionCall {
             "min" => {
                 rayql::sql::function_to_sql::min_function(&self.property_name, &self.arguments)
             }
+            "max" => {
+                rayql::sql::function_to_sql::max_function(&self.property_name, &self.arguments)
+            }
             "foreign_key" => rayql::sql::function_to_sql::foreign_key(&self.arguments),
             "default" => rayql::sql::function_to_sql::default_fn(&self.arguments),
             _ => Err(rayql::sql::ToSQLError::FunctionError {

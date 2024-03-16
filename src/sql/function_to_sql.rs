@@ -1,36 +1,7 @@
 use rayql::{
     schema::{Arguments, PropertyValue},
-    sql::ToSQLError,
+    sql::{FunctionError, ToSQLError},
 };
-
-#[derive(Debug)]
-pub enum FunctionError {
-    InvalidArgument(String),
-    MissingArgument,
-    ExpectsExactlyOneArgument(String),
-    UndefinedFunction(String),
-}
-
-impl std::fmt::Display for FunctionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FunctionError::InvalidArgument(msg) => {
-                write!(f, "Invalid argument: {}", msg)
-            }
-            FunctionError::MissingArgument => {
-                write!(f, "Missing argument")
-            }
-            FunctionError::ExpectsExactlyOneArgument(func) => {
-                write!(f, "{func} exactly one argument")
-            }
-            FunctionError::UndefinedFunction(func) => {
-                write!(f, "Undefined function called '{func}'")
-            }
-        }
-    }
-}
-
-impl std::error::Error for FunctionError {}
 
 pub fn min_function(
     property_name: impl Into<String>,
@@ -67,6 +38,43 @@ pub fn min_function(
     }?;
 
     Ok(format!("CHECK({} >= {})", property_name.into(), min_value))
+}
+
+pub fn max_function(
+    property_name: impl Into<String>,
+    arguments: &Arguments,
+) -> Result<String, ToSQLError> {
+    assert_got_single_arg("min", arguments)?;
+
+    let max_value = match arguments.first() {
+        Some(rayql::schema::Argument {
+            value,
+            line_number,
+            column_number,
+        }) => match value {
+            PropertyValue::Value(value) => Ok(value.to_sql()),
+            PropertyValue::FunctionCall(func) => func.to_sql(),
+            _ => {
+                return Err(ToSQLError::FunctionError {
+                    source: FunctionError::InvalidArgument(format!(
+                        "max value must be a value, got {:?}",
+                        value
+                    )),
+                    line_number: *line_number,
+                    column_number: *column_number,
+                })
+            }
+        },
+        None => {
+            return Err(ToSQLError::FunctionError {
+                source: FunctionError::MissingArgument,
+                line_number: arguments.line_number,
+                column_number: arguments.column_number,
+            })
+        }
+    }?;
+
+    Ok(format!("CHECK({} <= {})", property_name.into(), max_value))
 }
 
 pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
