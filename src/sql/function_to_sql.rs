@@ -7,6 +7,7 @@ use rayql::{
 pub enum FunctionError {
     InvalidArgument(String),
     MissingArgument,
+    MoreThanOneArgumentPassed,
 }
 
 impl std::fmt::Display for FunctionError {
@@ -18,6 +19,9 @@ impl std::fmt::Display for FunctionError {
             FunctionError::MissingArgument => {
                 write!(f, "Missing argument")
             }
+            FunctionError::MoreThanOneArgumentPassed => {
+                write!(f, "More than one argument passed")
+            }
         }
     }
 }
@@ -28,6 +32,8 @@ pub fn min_function(
     property_name: impl Into<String>,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
+    assert_got_single_arg(arguments)?;
+
     let min_value = match arguments.first() {
         Some(value) => match value {
             PropertyValue::Value(value) => Ok(value.to_sql()),
@@ -45,6 +51,8 @@ pub fn min_function(
 }
 
 pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
+    assert_got_single_arg(arguments)?;
+
     let (reference_table, reference_key) = match arguments.first() {
         Some(value) => match value {
             PropertyValue::Identifier(identifier) => match identifier.split_once('.') {
@@ -68,6 +76,8 @@ pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
 }
 
 pub fn default_fn(arguments: &Arguments) -> Result<String, ToSQLError> {
+    assert_got_single_arg(arguments)?;
+
     let value = match arguments.first() {
         Some(value) => match value {
             PropertyValue::Value(value) => Ok(value.to_sql()),
@@ -82,4 +92,13 @@ pub fn default_fn(arguments: &Arguments) -> Result<String, ToSQLError> {
     }?;
 
     Ok(format!("DEFAULT {}", value))
+}
+
+fn assert_got_single_arg(arguments: &Arguments) -> Result<(), ToSQLError> {
+    match arguments.0.len() {
+        1 => Ok(()),
+        _ => Err(ToSQLError::FunctionError(
+            FunctionError::MoreThanOneArgumentPassed,
+        )),
+    }
 }
