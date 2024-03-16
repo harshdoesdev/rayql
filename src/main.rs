@@ -23,7 +23,7 @@ fn main() {
         Ok(schema) => match sub_command {
             "parse" => println!("{:#?}", schema),
             "generate" => {
-                let sql_statements = schema.generate_sql();
+                let sql_statements = schema.to_sql();
                 let output = sql_statements
                     .iter()
                     .map(|(model_name, sql_statement)| {

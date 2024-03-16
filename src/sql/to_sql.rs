@@ -5,7 +5,7 @@ use rayql::{
 };
 
 impl Schema {
-    pub fn generate_sql(&self) -> Vec<(String, String)> {
+    pub fn to_sql(&self) -> Vec<(String, String)> {
         let mut sql_statements = Vec::new();
 
         for model in &self.models {
