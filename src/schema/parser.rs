@@ -54,12 +54,18 @@ fn parse_enum(
     for (token, line_number, col) in tokens_iter.by_ref() {
         match token {
             Token::BraceClose => {
-                return Ok(rayql::schema::Enum {
-                    name: enum_name,
+                return Ok(rayql::schema::Enum::new(
+                    enum_name,
                     variants,
-                })
+                    *line_number,
+                    *col,
+                ))
             }
-            Token::Identifier(variant) => variants.push(variant.clone()),
+            Token::Identifier(variant) => variants.push(rayql::schema::EnumVariant::new(
+                variant.clone(),
+                *line_number,
+                *col,
+            )),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
@@ -83,10 +89,12 @@ fn parse_model(
     while let Some((token, line_number, col)) = tokens_iter.next() {
         match token {
             Token::BraceClose => {
-                return Ok(rayql::schema::Model {
-                    name: model_name,
+                return Ok(rayql::schema::Model::new(
+                    model_name,
                     fields,
-                })
+                    *line_number,
+                    *col,
+                ))
             }
             Token::Identifier(identifier) => match tokens_iter.next() {
                 Some((Token::Colon, _, _)) => {
@@ -127,11 +135,13 @@ fn parse_field(
         match token {
             Token::Comma => {
                 tokens_iter.next();
-                return Ok(rayql::schema::Field {
+                return Ok(rayql::schema::Field::new(
                     name,
                     data_type,
                     properties,
-                });
+                    *line_number,
+                    *col,
+                ));
             }
             Token::Identifier(identifier) => {
                 tokens_iter.next();
@@ -156,11 +166,13 @@ fn parse_field(
                 )?);
             }
             Token::BraceClose => {
-                return Ok(rayql::schema::Field {
+                return Ok(rayql::schema::Field::new(
                     name,
                     data_type,
                     properties,
-                })
+                    *line_number,
+                    *col,
+                ))
             }
             _ => {
                 return Err(ParseError::UnexpectedToken {
@@ -186,7 +198,13 @@ fn parse_function_call(
         match token {
             Token::ParenClose => {
                 return Ok(rayql::schema::PropertyValue::FunctionCall(
-                    rayql::schema::FunctionCall::new(property_name, name, arguments),
+                    rayql::schema::FunctionCall::new(
+                        property_name,
+                        name,
+                        arguments,
+                        *line_number,
+                        *col,
+                    ),
                 ))
             }
             Token::Identifier(identifier) => {

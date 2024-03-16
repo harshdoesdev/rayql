@@ -1,25 +1,59 @@
 use std::fmt;
 
-use super::function_to_sql::FunctionError;
-
 #[derive(Debug)]
 pub enum ToSQLError {
-    EnumNotFound(String),
-    ConversionError(String),
-    FunctionError(FunctionError),
+    EnumNotFound {
+        enum_name: String,
+        line_number: usize,
+        column_number: usize,
+    },
+    ConversionError {
+        reason: String,
+        line_number: usize,
+        column_number: usize,
+    },
+    FunctionError {
+        source: rayql::sql::FunctionError,
+        line_number: usize,
+        column_number: usize,
+    },
 }
 
 impl fmt::Display for ToSQLError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ToSQLError::EnumNotFound(enum_name) => {
-                write!(f, "Enum not found: {}", enum_name)
+            ToSQLError::EnumNotFound {
+                enum_name,
+                line_number,
+                column_number,
+            } => {
+                write!(
+                    f,
+                    "Enum not found: {} at line {line_number}, column {column_number}",
+                    enum_name
+                )
             }
-            ToSQLError::ConversionError(reason) => {
-                write!(f, "Conversion error: {}", reason)
+            ToSQLError::ConversionError {
+                reason,
+                line_number,
+                column_number,
+            } => {
+                write!(
+                    f,
+                    "Conversion error: {} at line {line_number}, column {column_number}",
+                    reason
+                )
             }
-            ToSQLError::FunctionError(reason) => {
-                write!(f, "Function error: {}", reason)
+            ToSQLError::FunctionError {
+                source,
+                line_number,
+                column_number,
+            } => {
+                write!(
+                    f,
+                    "Function error: {} at line {line_number}, column {column_number}",
+                    source
+                )
             }
         }
     }

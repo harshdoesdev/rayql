@@ -1,5 +1,9 @@
-use rayql::schema::ParseError;
-use rayql::schema::TokenizationError;
+use rayql::{
+    schema::{ParseError, TokenizationError},
+    sql::{FunctionError, ToSQLError},
+};
+
+// TODO: Move these to specific crates
 
 pub fn generate_error_message(error: &ParseError, code: &str) -> String {
     match error {
@@ -53,4 +57,62 @@ fn generate_character_error_message(char: char, line: usize, col: usize, code: &
         }
     }
     formatted_code
+}
+
+pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
+    match error {
+        ToSQLError::EnumNotFound {
+            enum_name,
+            line_number,
+            column_number,
+        } => {
+            format!(
+                "\x1b[31mEnum not found: {} at line {}, column {}\x1b[0m",
+                enum_name, line_number, column_number
+            )
+        }
+        ToSQLError::ConversionError {
+            reason,
+            line_number,
+            column_number,
+        } => {
+            format!(
+                "\x1b[31mConversion error: {} at line {}, column {}\x1b[0m",
+                reason, line_number, column_number
+            )
+        }
+        ToSQLError::FunctionError {
+            source,
+            line_number,
+            column_number,
+        } => pretty_function_error_message(source, code, *line_number, *column_number),
+    }
+}
+
+fn pretty_function_error_message(
+    error: &FunctionError,
+    _code: &str,
+    line_number: usize,
+    column_number: usize,
+) -> String {
+    match error {
+        FunctionError::InvalidArgument(msg) => {
+            format!(
+                "\x1b[31mInvalid argument: {} at line {}, column {}\x1b[0m",
+                msg,
+                0,
+                0 // Assuming no specific line or column for now
+            )
+        }
+        FunctionError::MissingArgument => format!(
+            "\x1b[31mMissing argument at line {}, column {}\x1b[0m",
+            line_number, column_number,
+        ),
+        FunctionError::ExpectsExactlyOneArgument(func) => {
+            format!(
+                "\x1b[31m{func} takes exactly one argument, error at line {}, column {}\x1b[0m",
+                line_number, column_number
+            )
+        }
+    }
 }

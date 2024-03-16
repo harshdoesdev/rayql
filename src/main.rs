@@ -24,7 +24,13 @@ fn main() {
         Ok(schema) => match sub_command {
             "parse" => println!("{:#?}", schema),
             "generate" => {
-                let sql_statements = schema.to_sql().unwrap();
+                let sql_statements = match schema.to_sql() {
+                    Ok(stmts) => stmts,
+                    Err(err) => {
+                        eprintln!("{}", rayql::error::pretty_to_sql_error_message(&err, &code));
+                        std::process::exit(1);
+                    }
+                };
                 let output = sql_statements
                     .iter()
                     .map(|(model_name, sql_statement)| {

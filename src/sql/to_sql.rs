@@ -4,6 +4,8 @@ use rayql::{
     Value,
 };
 
+use crate::schema::EnumVariant;
+
 impl Schema {
     pub fn to_sql(&self) -> Result<Vec<(String, String)>, rayql::sql::ToSQLError> {
         let mut sql_statements = Vec::new();
@@ -19,10 +21,14 @@ impl Schema {
                             Some(e) => e
                                 .variants
                                 .iter()
-                                .map(|variant| format!("'{}'", variant))
+                                .map(|variant| format!("'{}'", variant.to_sql()))
                                 .collect(),
                             None => {
-                                return Err(rayql::sql::ToSQLError::EnumNotFound(enum_name.clone()))
+                                return Err(rayql::sql::ToSQLError::EnumNotFound {
+                                    enum_name: enum_name.clone(),
+                                    line_number: field.line_number,
+                                    column_number: field.column_number,
+                                })
                             }
                         };
                     field_sql.push_str(&format!(
@@ -83,7 +89,13 @@ impl FunctionCall {
 
 impl Arguments {
     pub fn to_sql(&self) -> Result<Vec<String>, rayql::sql::ToSQLError> {
-        self.0.iter().map(|arg| arg.to_sql()).collect()
+        self.list.iter().map(|arg| arg.to_sql()).collect()
+    }
+}
+
+impl EnumVariant {
+    pub fn to_sql(&self) -> String {
+        self.name.to_string()
     }
 }
 
