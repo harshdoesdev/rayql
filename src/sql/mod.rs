@@ -1,4 +1,4 @@
-mod function_to_sql;
+mod functions;
 pub mod to_sql;
 
 mod error;

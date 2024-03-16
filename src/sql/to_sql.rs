@@ -71,14 +71,10 @@ impl FunctionCall {
     pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
         match self.name.as_str() {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
-            "min" => {
-                rayql::sql::function_to_sql::min_function(&self.property_name, &self.arguments)
-            }
-            "max" => {
-                rayql::sql::function_to_sql::max_function(&self.property_name, &self.arguments)
-            }
-            "foreign_key" => rayql::sql::function_to_sql::foreign_key(&self.arguments),
-            "default" => rayql::sql::function_to_sql::default_fn(&self.arguments),
+            "min" => rayql::sql::functions::min_function(&self.property_name, &self.arguments),
+            "max" => rayql::sql::functions::max_function(&self.property_name, &self.arguments),
+            "foreign_key" => rayql::sql::functions::foreign_key(&self.arguments),
+            "default" => rayql::sql::functions::default_fn(&self.arguments),
             _ => Err(rayql::sql::ToSQLError::FunctionError {
                 source: rayql::sql::FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,
