@@ -1,5 +1,5 @@
 use rayql::{
-    schema::{Argument, Arguments, EnumVariant, FunctionCall, PropertyValue, Schema},
+    schema::{Argument, Arguments, EnumVariant, FunctionCall, PropertyValue, Reference, Schema},
     types::DataType,
     Value,
 };
@@ -60,8 +60,36 @@ impl PropertyValue {
             PropertyValue::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
             PropertyValue::Unique => Ok("UNIQUE".to_string()),
             PropertyValue::Identifier(id) => Ok(id.clone()),
+            PropertyValue::Reference(reference) => reference.to_sql(schema),
             PropertyValue::FunctionCall(func) => func.to_sql(schema),
             PropertyValue::Value(value) => Ok(value.to_sql()),
+        }
+    }
+}
+
+impl Reference {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
+        let model = match schema.get_model(&self.entity) {
+            Some(model) => model,
+            None => {
+                return Err(rayql::sql::ToSQLError::ModelNotFound {
+                    model_name: self.entity.to_string(),
+                    line_number: self.line_number.clone(),
+                    column: self.column.clone(),
+                })
+            }
+        };
+
+        match model.get_field(&self.property) {
+            Some(_) => Ok(format!("{}({})", self.entity, self.property)),
+            None => {
+                return Err(rayql::sql::ToSQLError::FieldNotFound {
+                    field_name: self.entity.to_string(),
+                    model_name: self.property.to_string(),
+                    line_number: self.line_number,
+                    column: self.column + self.property.len() + 1,
+                });
+            }
         }
     }
 }

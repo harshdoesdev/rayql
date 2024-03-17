@@ -21,6 +21,7 @@ pub enum TokenizationError {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Identifier(String),
+    Reference(String, String),
     StringLiteral(String),
     Integer(i64),
     Real(f64),
@@ -39,6 +40,7 @@ impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Token::Identifier(s) => write!(f, "Identifier: {}", s),
+            Token::Reference(e, p) => write!(f, "Reference: {}.{}", e, p),
             Token::StringLiteral(s) => write!(f, "StringLiteral: {}", s),
             Token::Integer(i) => write!(f, "Integer: {}", i),
             Token::Real(r) => write!(f, "Real: {}", r),
@@ -250,6 +252,10 @@ pub fn get_token(token_str: &str) -> Token {
 
     if let Ok(float) = token_str.parse::<f64>() {
         return Token::Real(float);
+    }
+
+    if let Some((entity, property)) = token_str.split_once('.') {
+        return Token::Reference(entity.to_string(), property.to_string());
     }
 
     Token::Identifier(token_str.to_string())

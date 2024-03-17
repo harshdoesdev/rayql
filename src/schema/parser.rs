@@ -233,6 +233,18 @@ fn parse_function_call(
                     *column,
                 ));
             }
+            Token::Reference(entity, property) => {
+                arguments.push(Argument::new(
+                    rayql::schema::PropertyValue::Reference(rayql::schema::Reference::new(
+                        entity.clone(),
+                        property.clone(),
+                        line_number.clone(),
+                        column.clone(),
+                    )),
+                    *line_number,
+                    *column,
+                ));
+            }
             Token::StringLiteral(s) => arguments.push(Argument::new(
                 rayql::schema::PropertyValue::Value(rayql::value::Value::StringLiteral(
                     s.to_string(),
