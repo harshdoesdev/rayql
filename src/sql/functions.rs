@@ -89,11 +89,11 @@ pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToS
             line_number,
             column,
         }) => match value {
-            PropertyValue::Reference(reference) => reference.to_sql(schema)?,
+            PropertyValue::Reference(reference) => reference.field_reference_to_sql(schema)?,
             _ => {
                 return Err(ToSQLError::FunctionError {
                     source: FunctionError::InvalidArgument(
-                        "foreign key value must be an identifer".to_string(),
+                        "foreign key value must be a reference".to_string(),
                     ),
                     line_number: *line_number,
                     column: *column,
@@ -123,6 +123,7 @@ pub fn default_fn(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQ
         }) => match value {
             PropertyValue::Value(value) => Ok(value.to_sql()),
             PropertyValue::FunctionCall(func) => func.to_sql(schema),
+            PropertyValue::Reference(reference) => reference.variant_reference_to_sql(schema),
             _ => {
                 return Err(ToSQLError::FunctionError {
                     source: FunctionError::InvalidArgument(format!(

@@ -27,6 +27,12 @@ impl Enum {
             column,
         }
     }
+
+    pub fn get_variant(&self, enum_variant: &str) -> Option<&EnumVariant> {
+        self.variants
+            .iter()
+            .find(|variant| variant.name.eq(enum_variant))
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -213,45 +219,4 @@ impl Schema {
     pub fn get_enum(&self, enum_name: &str) -> Option<&Enum> {
         self.enums.iter().find(|e| e.name.eq(enum_name))
     }
-
-    // pub fn resolve_model_reference(&self, reference: &str) -> Option<()> {
-    //     let (model_name, )
-    //     match reference.split_once('.') {
-    //         Some((model_name, field_name)) => {
-    //             let model = match schema.get_model(model_name) {
-    //                 Some(model) => model,
-    //                 None => {
-    //                     return Err(ToSQLError::ModelNotFound {
-    //                         model_name: model_name.to_string(),
-    //                         line_number: *line_number,
-    //                         column: *column,
-    //                     })
-    //                 }
-    //             };
-
-    //             match model.get_field(field_name) {
-    //                 Some(_) => (model_name, field_name),
-    //                 None => {
-    //                     return Err(ToSQLError::FieldNotFound {
-    //                         field_name: field_name.to_string(),
-    //                         model_name: model_name.to_string(),
-    //                         line_number: *line_number,
-    //                         column: column + field_name.len() + 1, // field name length + .
-    //                     });
-    //                 }
-    //             }
-    //         }
-    //         None => {
-    //             return Err(ToSQLError::FunctionError {
-    //                 source: FunctionError::InvalidArgument(
-    //                     "Reference key not found.".to_string(),
-    //                 ),
-    //                 line_number: *line_number,
-    //                 column: *column,
-    //             })
-    //         }
-    //     }
-
-    //     Some(())
-    // }
 }

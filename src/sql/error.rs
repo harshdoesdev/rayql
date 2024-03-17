@@ -2,6 +2,11 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum ToSQLError {
+    UnknownReference {
+        entity_name: String,
+        line_number: usize,
+        column: usize,
+    },
     EnumNotFound {
         enum_name: String,
         line_number: usize,
@@ -15,6 +20,12 @@ pub enum ToSQLError {
     FieldNotFound {
         model_name: String,
         field_name: String,
+        line_number: usize,
+        column: usize,
+    },
+    VariantNotFound {
+        enum_name: String,
+        variant: String,
         line_number: usize,
         column: usize,
     },
@@ -33,6 +44,17 @@ pub enum ToSQLError {
 impl fmt::Display for ToSQLError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ToSQLError::UnknownReference {
+                entity_name,
+                line_number,
+                column,
+            } => {
+                write!(
+                    f,
+                    "Unknown reference: {} at line {line_number}, column {column}",
+                    entity_name
+                )
+            }
             ToSQLError::EnumNotFound {
                 enum_name,
                 line_number,
@@ -65,6 +87,18 @@ impl fmt::Display for ToSQLError {
                     f,
                     "Field '{}' does not exists on model '{}': line {line_number}, column {column}",
                     model_name, field_name
+                )
+            }
+            ToSQLError::VariantNotFound {
+                enum_name,
+                variant,
+                line_number,
+                column,
+            } => {
+                write!(
+                    f,
+                    "Variant '{}' does not exists on enum '{}': line {line_number}, column {column}",
+                    enum_name, variant
                 )
             }
             ToSQLError::ConversionError {

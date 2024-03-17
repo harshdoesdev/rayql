@@ -238,8 +238,8 @@ fn parse_function_call(
                     rayql::schema::PropertyValue::Reference(rayql::schema::Reference::new(
                         entity.clone(),
                         property.clone(),
-                        line_number.clone(),
-                        column.clone(),
+                        *line_number,
+                        *column,
                     )),
                     *line_number,
                     *column,

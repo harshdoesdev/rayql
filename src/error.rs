@@ -69,6 +69,16 @@ fn generate_character_error_message(char: char, line: usize, column: usize, code
 
 pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
     match error {
+        ToSQLError::UnknownReference {
+            entity_name,
+            line_number,
+            column,
+        } => {
+            format!(
+                "\x1b[31mUnknown reference: {} at line {}, column {}\x1b[0m",
+                entity_name, line_number, column
+            )
+        }
         ToSQLError::EnumNotFound {
             enum_name,
             line_number,
@@ -98,6 +108,17 @@ pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
             format!(
                 "\x1b[31mField '{}' does not exists on model '{}': at line {}, column {}\x1b[0m",
                 field_name, model_name, line_number, column
+            )
+        }
+        ToSQLError::VariantNotFound {
+            enum_name,
+            variant,
+            line_number,
+            column,
+        } => {
+            format!(
+                "\x1b[31mVariant '{}' does not exists on enum '{}': at line {}, column {}\x1b[0m",
+                variant, enum_name, line_number, column
             )
         }
         ToSQLError::ConversionError {
