@@ -13,6 +13,12 @@ pub enum ParseError {
         line_number: usize,
         column: usize,
     },
+    #[error("Identifier is already in use")]
+    IdentifierAlreadyInUse {
+        identifier: String,
+        line_number: usize,
+        column: usize,
+    },
     #[error("Unexpected End of Tokens")]
     UnexpectedEndOfTokens,
 }
@@ -21,16 +27,19 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
     let tokens = tokenize(input)?;
     let mut models = Vec::new();
     let mut enums = Vec::new();
+    let mut identifiers = std::collections::HashSet::new();
     let mut tokens_iter = tokens.iter().peekable();
 
     while let Some((token, line_number, column)) = tokens_iter.next() {
         match token {
             Token::Keyword(Keyword::Enum) => {
-                let enum_declaration = parse_enum(&mut tokens_iter)?;
+                let enum_name = get_model_or_enum_name(&mut tokens_iter, &mut identifiers)?;
+                let enum_declaration = parse_enum(enum_name, &mut tokens_iter)?;
                 enums.push(enum_declaration);
             }
             Token::Keyword(Keyword::Model) => {
-                let model_declaration = parse_model(&mut tokens_iter)?;
+                let model_name = get_model_or_enum_name(&mut tokens_iter, &mut identifiers)?;
+                let model_declaration = parse_model(model_name, &mut tokens_iter)?;
                 models.push(model_declaration);
             }
             _ => {
@@ -47,10 +56,9 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
 }
 
 fn parse_enum(
+    enum_name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Enum, ParseError> {
-    let enum_name = get_model_or_enum_name(tokens_iter)?;
-
     let mut variants = vec![];
 
     for (token, line_number, column) in tokens_iter.by_ref() {
@@ -82,10 +90,9 @@ fn parse_enum(
 }
 
 fn parse_model(
+    model_name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Model, ParseError> {
-    let model_name = get_model_or_enum_name(tokens_iter)?;
-
     let mut fields = vec![];
 
     while let Some((token, line_number, column)) = tokens_iter.next() {

@@ -38,9 +38,20 @@ pub(crate) fn get_data_type(
 
 pub(crate) fn get_model_or_enum_name(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
+    identifiers: &mut std::collections::HashSet<String>,
 ) -> Result<String, ParseError> {
     let name = match tokens_iter.next() {
-        Some((Token::Identifier(name), _, _)) => name.clone(),
+        Some((Token::Identifier(name), line_number, column)) => {
+            if identifiers.contains(name) {
+                return Err(ParseError::IdentifierAlreadyInUse {
+                    identifier: name.clone(),
+                    line_number: *line_number,
+                    column: *column,
+                });
+            }
+
+            name.clone()
+        }
         Some((token, line_number, column)) => {
             return Err(ParseError::UnexpectedToken {
                 token: token.clone(),
@@ -50,6 +61,8 @@ pub(crate) fn get_model_or_enum_name(
         }
         None => return Err(ParseError::UnexpectedEndOfTokens),
     };
+
+    identifiers.insert(name.clone());
 
     match tokens_iter.next() {
         Some((Token::BraceOpen, _, _)) => Ok(name),

@@ -18,6 +18,14 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             "\x1b[31mUnexpected token {:?} at line {}, column {}\x1b[0m",
             token, line_number, column
         ),
+        ParseError::IdentifierAlreadyInUse {
+            identifier,
+            line_number,
+            column,
+        } => format!(
+            "\x1b[31mCannot re-define '{}' at line {}, column {}\x1b[0m",
+            identifier, line_number, column
+        ),
         ParseError::UnexpectedEndOfTokens => "\x1b[31mUnexpected end of tokens\x1b[0m".to_string(),
     }
 }

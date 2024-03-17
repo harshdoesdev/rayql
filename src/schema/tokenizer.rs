@@ -1,9 +1,17 @@
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum TokenizationError {
     #[error("Unexpected character '{char}' at line {line}, column {column}")]
-    UnexpectedCharacter { char: char, line: usize, column: usize },
+    UnexpectedCharacter {
+        char: char,
+        line: usize,
+        column: usize,
+    },
     #[error("Unknown Escape Sequence '{char}' at line {line}, column {column}")]
-    UnknownEscapeSequence { char: char, line: usize, column: usize },
+    UnknownEscapeSequence {
+        char: char,
+        line: usize,
+        column: usize,
+    },
     #[error("String literal opened at line {line}, column {column}")]
     StringLiteralOpened { line: usize, column: usize },
     #[error("Unexpected End of Input")]
@@ -132,7 +140,7 @@ pub fn tokenize_line(
                         return Err(TokenizationError::UnknownEscapeSequence {
                             char: ch,
                             line: line_number,
-                            column: column,
+                            column,
                         })
                     }
                 }
@@ -151,11 +159,7 @@ pub fn tokenize_line(
             }
         } else if ch.is_whitespace() {
             if !buffer.is_empty() {
-                tokens.push((
-                    get_token(&buffer),
-                    line_number,
-                    column - buffer.len(),
-                ));
+                tokens.push((get_token(&buffer), line_number, column - buffer.len()));
                 buffer.clear();
             }
         } else {
@@ -172,7 +176,7 @@ pub fn tokenize_line(
                             return Err(TokenizationError::UnexpectedCharacter {
                                 char: ch,
                                 line: line_number,
-                                column: column,
+                                column,
                             });
                         }
                     } else {
@@ -191,11 +195,7 @@ pub fn tokenize_line(
                 ch if ch.is_alphanumeric() => buffer.push(ch),
                 _ => {
                     if !buffer.is_empty() {
-                        tokens.push((
-                            get_token(&buffer),
-                            line_number,
-                            column - buffer.len(),
-                        ));
+                        tokens.push((get_token(&buffer), line_number, column - buffer.len()));
                         buffer.clear();
                     }
 
@@ -210,7 +210,7 @@ pub fn tokenize_line(
                             return Err(TokenizationError::UnexpectedCharacter {
                                 char: ch,
                                 line: line_number,
-                                column: column,
+                                column,
                             });
                         }
                     };
@@ -224,16 +224,12 @@ pub fn tokenize_line(
     if in_string_literal {
         return Err(TokenizationError::StringLiteralOpened {
             line: line_number,
-            column: column,
+            column,
         });
     }
 
     if !buffer.is_empty() {
-        tokens.push((
-            get_token(&buffer),
-            line_number,
-            column - buffer.len(),
-        ));
+        tokens.push((get_token(&buffer), line_number, column - buffer.len()));
     }
 
     Ok(tokens)
