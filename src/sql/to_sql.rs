@@ -14,21 +14,20 @@ impl Schema {
                 let mut field_sql = format!("    {} {}", field.name, field.data_type.to_sql(),);
 
                 if let DataType::Enum(enum_name) = &field.data_type {
-                    let variants: Vec<String> =
-                        match self.enums.iter().find(|e| e.name.eq(enum_name)) {
-                            Some(e) => e
-                                .variants
-                                .iter()
-                                .map(|variant| format!("'{}'", variant.to_sql()))
-                                .collect(),
-                            None => {
-                                return Err(rayql::sql::ToSQLError::EnumNotFound {
-                                    enum_name: enum_name.clone(),
-                                    line_number: field.line_number,
-                                    column: field.column,
-                                })
-                            }
-                        };
+                    let variants: Vec<String> = match self.get_enum(enum_name) {
+                        Some(e) => e
+                            .variants
+                            .iter()
+                            .map(|variant| format!("'{}'", variant.to_sql()))
+                            .collect(),
+                        None => {
+                            return Err(rayql::sql::ToSQLError::EnumNotFound {
+                                enum_name: enum_name.clone(),
+                                line_number: field.line_number,
+                                column: field.column,
+                            })
+                        }
+                    };
                     field_sql.push_str(&format!(
                         " CHECK({} IN ({}))",
                         field.name,
@@ -37,7 +36,7 @@ impl Schema {
                 }
 
                 for prop in &field.properties {
-                    field_sql.push_str(&format!(" {}", prop.to_sql()?));
+                    field_sql.push_str(&format!(" {}", prop.to_sql(&self)?));
                 }
 
                 fields_sql.push(field_sql);
@@ -55,26 +54,30 @@ impl Schema {
 }
 
 impl PropertyValue {
-    pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
         match &self {
             PropertyValue::PrimaryKey => Ok("PRIMARY KEY".to_string()),
             PropertyValue::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
             PropertyValue::Unique => Ok("UNIQUE".to_string()),
             PropertyValue::Identifier(id) => Ok(id.clone()),
-            PropertyValue::FunctionCall(func) => func.to_sql(),
+            PropertyValue::FunctionCall(func) => func.to_sql(schema),
             PropertyValue::Value(value) => Ok(value.to_sql()),
         }
     }
 }
 
 impl FunctionCall {
-    pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
         match self.name.as_str() {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
-            "min" => rayql::sql::functions::min_function(&self.property_name, &self.arguments),
-            "max" => rayql::sql::functions::max_function(&self.property_name, &self.arguments),
-            "foreign_key" => rayql::sql::functions::foreign_key(&self.arguments),
-            "default" => rayql::sql::functions::default_fn(&self.arguments),
+            "min" => {
+                rayql::sql::functions::min_function(schema, &self.property_name, &self.arguments)
+            }
+            "max" => {
+                rayql::sql::functions::max_function(schema, &self.property_name, &self.arguments)
+            }
+            "foreign_key" => rayql::sql::functions::foreign_key(schema, &self.arguments),
+            "default" => rayql::sql::functions::default_fn(schema, &self.arguments),
             _ => Err(rayql::sql::ToSQLError::FunctionError {
                 source: rayql::sql::FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,
@@ -85,14 +88,14 @@ impl FunctionCall {
 }
 
 impl Arguments {
-    pub fn to_sql(&self) -> Result<Vec<String>, rayql::sql::ToSQLError> {
-        self.list.iter().map(|arg| arg.to_sql()).collect()
+    pub fn to_sql(&self, schema: &Schema) -> Result<Vec<String>, rayql::sql::ToSQLError> {
+        self.list.iter().map(|arg| arg.to_sql(schema)).collect()
     }
 }
 
 impl Argument {
-    pub fn to_sql(&self) -> Result<String, rayql::sql::ToSQLError> {
-        self.value.to_sql()
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
+        self.value.to_sql(schema)
     }
 }
 

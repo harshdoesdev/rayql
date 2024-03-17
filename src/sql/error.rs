@@ -7,6 +7,17 @@ pub enum ToSQLError {
         line_number: usize,
         column: usize,
     },
+    ModelNotFound {
+        model_name: String,
+        line_number: usize,
+        column: usize,
+    },
+    FieldNotFound {
+        model_name: String,
+        field_name: String,
+        line_number: usize,
+        column: usize,
+    },
     ConversionError {
         reason: String,
         line_number: usize,
@@ -31,6 +42,29 @@ impl fmt::Display for ToSQLError {
                     f,
                     "Enum not found: {} at line {line_number}, column {column}",
                     enum_name
+                )
+            }
+            ToSQLError::ModelNotFound {
+                model_name,
+                line_number,
+                column,
+            } => {
+                write!(
+                    f,
+                    "Enum not found: {} at line {line_number}, column {column}",
+                    model_name
+                )
+            }
+            ToSQLError::FieldNotFound {
+                model_name,
+                field_name,
+                line_number,
+                column,
+            } => {
+                write!(
+                    f,
+                    "Field '{}' does not exists on model '{}': line {line_number}, column {column}",
+                    model_name, field_name
                 )
             }
             ToSQLError::ConversionError {

@@ -165,6 +165,10 @@ impl Model {
             column,
         }
     }
+
+    pub fn get_field(&self, field_name: &str) -> Option<&Field> {
+        self.fields.iter().find(|field| field.name.eq(field_name))
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -180,5 +184,13 @@ impl Schema {
 
     pub fn parse(input: &str) -> Result<rayql::Schema, rayql::schema::ParseError> {
         rayql::schema::parse(input)
+    }
+
+    pub fn get_model(&self, model_name: &str) -> Option<&Model> {
+        self.models.iter().find(|model| model.name.eq(model_name))
+    }
+
+    pub fn get_enum(&self, enum_name: &str) -> Option<&Enum> {
+        self.enums.iter().find(|e| e.name.eq(enum_name))
     }
 }

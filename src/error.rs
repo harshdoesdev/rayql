@@ -79,6 +79,27 @@ pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
                 enum_name, line_number, column
             )
         }
+        ToSQLError::ModelNotFound {
+            model_name,
+            line_number,
+            column,
+        } => {
+            format!(
+                "\x1b[31mModel not found: {} at line {}, column {}\x1b[0m",
+                model_name, line_number, column
+            )
+        }
+        ToSQLError::FieldNotFound {
+            model_name,
+            field_name,
+            line_number,
+            column,
+        } => {
+            format!(
+                "\x1b[31mField '{}' does not exists on model '{}': at line {}, column {}\x1b[0m",
+                field_name, model_name, line_number, column
+            )
+        }
         ToSQLError::ConversionError {
             reason,
             line_number,
