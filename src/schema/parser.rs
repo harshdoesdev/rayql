@@ -19,6 +19,13 @@ pub enum ParseError {
         line_number: usize,
         column: usize,
     },
+    #[error("Invalid reference, cannot access '{entity}' of '{property}'")]
+    InvalidReference {
+        entity: String,
+        property: String,
+        line_number: usize,
+        column: usize,
+    },
     #[error("Unexpected End of Tokens")]
     UnexpectedEndOfTokens,
 }
@@ -234,6 +241,15 @@ fn parse_function_call(
                 ));
             }
             Token::Reference(entity, property) => {
+                if property.contains('.') {
+                    return Err(ParseError::InvalidReference {
+                        entity: entity.to_string(),
+                        property: property.to_string(),
+                        line_number: *line_number,
+                        column: *column,
+                    });
+                }
+
                 arguments.push(Argument::new(
                     rayql::schema::PropertyValue::Reference(rayql::schema::Reference::new(
                         entity.clone(),

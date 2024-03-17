@@ -18,6 +18,15 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             "\x1b[31mUnexpected token {} at line {}, column {}\x1b[0m",
             token, line_number, column
         ),
+        ParseError::InvalidReference {
+            entity,
+            property,
+            line_number,
+            column,
+        } => format!(
+            "\x1b[31mInvalid Reference: Cannot access '{}' of '{}' at line {}, column {}\x1b[0m",
+            property, entity, line_number, column
+        ),
         ParseError::IdentifierAlreadyInUse {
             identifier,
             line_number,
