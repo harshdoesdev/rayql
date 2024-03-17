@@ -1,6 +1,6 @@
 use rayql::schema::{
+    error::ParseError,
     tokenizer::{Keyword, Token},
-    ParseError,
 };
 
 pub(crate) fn get_data_type(

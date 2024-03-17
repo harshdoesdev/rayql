@@ -35,7 +35,7 @@ pub enum ToSQLError {
         column: usize,
     },
     FunctionError {
-        source: rayql::sql::FunctionError,
+        source: rayql::sql::error::FunctionError,
         line_number: usize,
         column: usize,
     },

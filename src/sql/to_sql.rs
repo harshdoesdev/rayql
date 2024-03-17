@@ -5,10 +5,11 @@ use rayql::{
     },
     types::DataType,
     Value,
+    sql::error::{ToSQLError, FunctionError},
 };
 
 impl Schema {
-    pub fn to_sql(&self) -> Result<Vec<(String, String)>, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self) -> Result<Vec<(String, String)>, ToSQLError> {
         let mut sql_statements = Vec::new();
 
         for model in &self.models {
@@ -24,7 +25,7 @@ impl Schema {
                             .map(|variant| format!("'{}'", variant.to_sql()))
                             .collect(),
                         None => {
-                            return Err(rayql::sql::ToSQLError::EnumNotFound {
+                            return Err(ToSQLError::EnumNotFound {
                                 enum_name: enum_name.clone(),
                                 line_number: field.line_number,
                                 column: field.column,
@@ -57,7 +58,7 @@ impl Schema {
 }
 
 impl PropertyValue {
-    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match &self {
             PropertyValue::PrimaryKey => Ok("PRIMARY KEY".to_string()),
             PropertyValue::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
@@ -74,10 +75,10 @@ impl Reference {
     pub fn field_reference_to_sql(
         &self,
         schema: &Schema,
-    ) -> Result<String, rayql::sql::ToSQLError> {
+    ) -> Result<String, ToSQLError> {
         match schema.get_model(&self.entity) {
             Some(model) => model.field_to_sql(&self.property, self.line_number, self.column),
-            None => Err(rayql::sql::ToSQLError::ModelNotFound {
+            None => Err(ToSQLError::ModelNotFound {
                 model_name: self.entity.clone(),
                 line_number: self.line_number,
                 column: self.column,
@@ -88,10 +89,10 @@ impl Reference {
     pub fn variant_reference_to_sql(
         &self,
         schema: &Schema,
-    ) -> Result<String, rayql::sql::ToSQLError> {
+    ) -> Result<String, ToSQLError> {
         match schema.get_enum(&self.entity) {
             Some(e) => e.variant_to_sql(&self.property, self.line_number, self.column),
-            None => Err(rayql::sql::ToSQLError::EnumNotFound {
+            None => Err(ToSQLError::EnumNotFound {
                 enum_name: self.entity.clone(),
                 line_number: self.line_number,
                 column: self.column,
@@ -106,10 +107,10 @@ impl Model {
         field_name: &str,
         line_number: usize,
         column: usize,
-    ) -> Result<String, rayql::sql::ToSQLError> {
+    ) -> Result<String, ToSQLError> {
         match self.get_field(field_name) {
             Some(_) => Ok(format!("{}({})", self.name, field_name)),
-            None => Err(rayql::sql::ToSQLError::FieldNotFound {
+            None => Err(ToSQLError::FieldNotFound {
                 field_name: field_name.to_string(),
                 model_name: self.name.to_string(),
                 line_number,
@@ -125,10 +126,10 @@ impl Enum {
         variant: &str,
         line_number: usize,
         column: usize,
-    ) -> Result<String, rayql::sql::ToSQLError> {
+    ) -> Result<String, ToSQLError> {
         match self.get_variant(variant) {
             Some(_) => Ok(format!("'{}'", variant)),
-            None => Err(rayql::sql::ToSQLError::VariantNotFound {
+            None => Err(ToSQLError::VariantNotFound {
                 variant: variant.to_string(),
                 enum_name: self.name.to_string(),
                 line_number,
@@ -139,7 +140,7 @@ impl Enum {
 }
 
 impl FunctionCall {
-    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match self.name.as_str() {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
             "min" => {
@@ -150,8 +151,8 @@ impl FunctionCall {
             }
             "foreign_key" => rayql::sql::functions::foreign_key(schema, &self.arguments),
             "default" => rayql::sql::functions::default_fn(schema, &self.arguments),
-            _ => Err(rayql::sql::ToSQLError::FunctionError {
-                source: rayql::sql::FunctionError::UndefinedFunction(self.name.clone()),
+            _ => Err(ToSQLError::FunctionError {
+                source: FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,
                 column: self.column,
             }),
@@ -160,13 +161,13 @@ impl FunctionCall {
 }
 
 impl Arguments {
-    pub fn to_sql(&self, schema: &Schema) -> Result<Vec<String>, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self, schema: &Schema) -> Result<Vec<String>, ToSQLError> {
         self.list.iter().map(|arg| arg.to_sql(schema)).collect()
     }
 }
 
 impl Argument {
-    pub fn to_sql(&self, schema: &Schema) -> Result<String, rayql::sql::ToSQLError> {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         self.value.to_sql(schema)
     }
 }

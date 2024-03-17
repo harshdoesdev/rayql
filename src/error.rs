@@ -1,6 +1,6 @@
 use rayql::{
-    schema::{ParseError, TokenizationError},
-    sql::{FunctionError, ToSQLError},
+    schema::error::{ParseError, TokenizationError},
+    sql::error::{FunctionError, ToSQLError},
 };
 
 // TODO: Move these to specific crates

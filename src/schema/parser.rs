@@ -1,34 +1,9 @@
-use rayql::schema::tokenizer::{tokenize, Keyword, Token, TokenizationError};
-use rayql::schema::utils::{get_data_type, get_model_or_enum_name};
-
-use super::Argument;
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-pub enum ParseError {
-    #[error("Tokenization Error: {0}")]
-    TokenizationError(#[from] TokenizationError),
-    #[error("Unexpected Token")]
-    UnexpectedToken {
-        token: Token,
-        line_number: usize,
-        column: usize,
-    },
-    #[error("Identifier is already in use")]
-    IdentifierAlreadyInUse {
-        identifier: String,
-        line_number: usize,
-        column: usize,
-    },
-    #[error("Invalid reference, cannot access '{entity}' of '{property}'")]
-    InvalidReference {
-        entity: String,
-        property: String,
-        line_number: usize,
-        column: usize,
-    },
-    #[error("Unexpected End of Tokens")]
-    UnexpectedEndOfTokens,
-}
+use rayql::schema::{
+    error::ParseError,
+    tokenizer::{tokenize, Keyword, Token},
+    utils::{get_data_type, get_model_or_enum_name},
+    Argument,
+};
 
 pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
     let tokens = tokenize(input)?;

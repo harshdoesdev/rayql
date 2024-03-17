@@ -2,8 +2,9 @@ mod parser;
 mod tokenizer;
 mod utils;
 
-pub use parser::{parse, ParseError};
-pub use tokenizer::TokenizationError;
+pub mod error;
+
+pub use parser::parse;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Enum {
@@ -208,7 +209,7 @@ impl Schema {
         Schema { enums, models }
     }
 
-    pub fn parse(input: &str) -> Result<rayql::Schema, rayql::schema::ParseError> {
+    pub fn parse(input: &str) -> Result<rayql::Schema, error::ParseError> {
         rayql::schema::parse(input)
     }
 

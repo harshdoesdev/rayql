@@ -1,6 +1,6 @@
 use rayql::{
     schema::{Arguments, PropertyValue, Schema},
-    sql::{FunctionError, ToSQLError},
+    sql::error::{FunctionError, ToSQLError},
 };
 
 pub fn min_function(

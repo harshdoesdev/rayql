@@ -1,22 +1,4 @@
-#[derive(thiserror::Error, Debug, PartialEq)]
-pub enum TokenizationError {
-    #[error("Unexpected character '{char}' at line {line}, column {column}")]
-    UnexpectedCharacter {
-        char: char,
-        line: usize,
-        column: usize,
-    },
-    #[error("Unknown Escape Sequence '{char}' at line {line}, column {column}")]
-    UnknownEscapeSequence {
-        char: char,
-        line: usize,
-        column: usize,
-    },
-    #[error("String literal opened at line {line}, column {column}")]
-    StringLiteralOpened { line: usize, column: usize },
-    #[error("Unexpected End of Input")]
-    UnexpectedEndOfInput,
-}
+use rayql::schema::error::TokenizationError;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
