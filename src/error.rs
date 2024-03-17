@@ -107,9 +107,7 @@ fn pretty_function_error_message(
         FunctionError::InvalidArgument(msg) => {
             format!(
                 "\x1b[31mInvalid argument: {} at line {}, column {}\x1b[0m",
-                msg,
-                0,
-                0 // Assuming no specific line or column for now
+                msg, line_number, column,
             )
         }
         FunctionError::MissingArgument => format!(
