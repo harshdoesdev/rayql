@@ -15,7 +15,7 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             line_number,
             column,
         } => format!(
-            "\x1b[31mUnexpected token {:?} at line {}, column {}\x1b[0m",
+            "\x1b[31mUnexpected token {} at line {}, column {}\x1b[0m",
             token, line_number, column
         ),
         ParseError::IdentifierAlreadyInUse {
