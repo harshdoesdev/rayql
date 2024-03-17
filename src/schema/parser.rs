@@ -2,10 +2,10 @@ use rayql::schema::{
     error::ParseError,
     tokenizer::{tokenize, Keyword, Token},
     utils::{get_data_type, get_model_or_enum_name},
-    Argument,
+    Argument, Schema,
 };
 
-pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
+pub fn parse(input: &str) -> Result<Schema, ParseError> {
     let tokens = tokenize(input)?;
     let mut models = Vec::new();
     let mut enums = Vec::new();
@@ -34,7 +34,7 @@ pub fn parse(input: &str) -> Result<rayql::Schema, ParseError> {
         }
     }
 
-    Ok(rayql::Schema::new(enums, models))
+    Ok(Schema::new(enums, models))
 }
 
 fn parse_enum(

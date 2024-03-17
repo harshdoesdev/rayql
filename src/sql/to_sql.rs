@@ -3,9 +3,9 @@ use rayql::{
         Argument, Arguments, Enum, EnumVariant, FunctionCall, Model, PropertyValue, Reference,
         Schema,
     },
+    sql::error::{FunctionError, ToSQLError},
     types::DataType,
     Value,
-    sql::error::{ToSQLError, FunctionError},
 };
 
 impl Schema {
@@ -72,10 +72,7 @@ impl PropertyValue {
 }
 
 impl Reference {
-    pub fn field_reference_to_sql(
-        &self,
-        schema: &Schema,
-    ) -> Result<String, ToSQLError> {
+    pub fn field_reference_to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match schema.get_model(&self.entity) {
             Some(model) => model.field_to_sql(&self.property, self.line_number, self.column),
             None => Err(ToSQLError::ModelNotFound {
@@ -86,10 +83,7 @@ impl Reference {
         }
     }
 
-    pub fn variant_reference_to_sql(
-        &self,
-        schema: &Schema,
-    ) -> Result<String, ToSQLError> {
+    pub fn variant_reference_to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match schema.get_enum(&self.entity) {
             Some(e) => e.variant_to_sql(&self.property, self.line_number, self.column),
             None => Err(ToSQLError::EnumNotFound {
