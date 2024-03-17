@@ -103,8 +103,8 @@ pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
                     source: FunctionError::InvalidArgument(
                         "foreign key value must be an identifer".to_string(),
                     ),
-                    line_number: arguments.line_number,
-                    column: arguments.column,
+                    line_number: *line_number,
+                    column: *column,
                 })
             }
         },
