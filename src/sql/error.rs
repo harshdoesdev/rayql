@@ -5,17 +5,17 @@ pub enum ToSQLError {
     EnumNotFound {
         enum_name: String,
         line_number: usize,
-        column_number: usize,
+        column: usize,
     },
     ConversionError {
         reason: String,
         line_number: usize,
-        column_number: usize,
+        column: usize,
     },
     FunctionError {
         source: rayql::sql::FunctionError,
         line_number: usize,
-        column_number: usize,
+        column: usize,
     },
 }
 
@@ -25,33 +25,33 @@ impl fmt::Display for ToSQLError {
             ToSQLError::EnumNotFound {
                 enum_name,
                 line_number,
-                column_number,
+                column,
             } => {
                 write!(
                     f,
-                    "Enum not found: {} at line {line_number}, column {column_number}",
+                    "Enum not found: {} at line {line_number}, column {column}",
                     enum_name
                 )
             }
             ToSQLError::ConversionError {
                 reason,
                 line_number,
-                column_number,
+                column,
             } => {
                 write!(
                     f,
-                    "Conversion error: {} at line {line_number}, column {column_number}",
+                    "Conversion error: {} at line {line_number}, column {column}",
                     reason
                 )
             }
             ToSQLError::FunctionError {
                 source,
                 line_number,
-                column_number,
+                column,
             } => {
                 write!(
                     f,
-                    "Function error: {} at line {line_number}, column {column_number}",
+                    "Function error: {} at line {line_number}, column {column}",
                     source
                 )
             }

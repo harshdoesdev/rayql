@@ -13,7 +13,7 @@ pub fn min_function(
         Some(rayql::schema::Argument {
             value,
             line_number,
-            column_number,
+            column,
         }) => match value {
             PropertyValue::Value(value) => Ok(value.to_sql()),
             PropertyValue::FunctionCall(func) => func.to_sql(),
@@ -24,7 +24,7 @@ pub fn min_function(
                         value
                     )),
                     line_number: *line_number,
-                    column_number: *column_number,
+                    column: *column,
                 })
             }
         },
@@ -32,7 +32,7 @@ pub fn min_function(
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::MissingArgument,
                 line_number: arguments.line_number,
-                column_number: arguments.column_number,
+                column: arguments.column,
             })
         }
     }?;
@@ -50,7 +50,7 @@ pub fn max_function(
         Some(rayql::schema::Argument {
             value,
             line_number,
-            column_number,
+            column,
         }) => match value {
             PropertyValue::Value(value) => Ok(value.to_sql()),
             PropertyValue::FunctionCall(func) => func.to_sql(),
@@ -61,7 +61,7 @@ pub fn max_function(
                         value
                     )),
                     line_number: *line_number,
-                    column_number: *column_number,
+                    column: *column,
                 })
             }
         },
@@ -69,7 +69,7 @@ pub fn max_function(
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::MissingArgument,
                 line_number: arguments.line_number,
-                column_number: arguments.column_number,
+                column: arguments.column,
             })
         }
     }?;
@@ -84,7 +84,7 @@ pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
         Some(rayql::schema::Argument {
             value,
             line_number,
-            column_number,
+            column,
         }) => match value {
             PropertyValue::Identifier(identifier) => match identifier.split_once('.') {
                 Some(v) => v,
@@ -94,7 +94,7 @@ pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
                             "Reference key not found.".to_string(),
                         ),
                         line_number: *line_number,
-                        column_number: *column_number,
+                        column: *column,
                     })
                 }
             },
@@ -104,7 +104,7 @@ pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
                         "foreign key value must be an identifer".to_string(),
                     ),
                     line_number: arguments.line_number,
-                    column_number: arguments.column_number,
+                    column: arguments.column,
                 })
             }
         },
@@ -112,7 +112,7 @@ pub fn foreign_key(arguments: &Arguments) -> Result<String, ToSQLError> {
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::MissingArgument,
                 line_number: arguments.line_number,
-                column_number: arguments.column_number,
+                column: arguments.column,
             })
         }
     };
@@ -127,7 +127,7 @@ pub fn default_fn(arguments: &Arguments) -> Result<String, ToSQLError> {
         Some(rayql::schema::Argument {
             value,
             line_number,
-            column_number,
+            column,
         }) => match value {
             PropertyValue::Value(value) => Ok(value.to_sql()),
             PropertyValue::FunctionCall(func) => func.to_sql(),
@@ -138,7 +138,7 @@ pub fn default_fn(arguments: &Arguments) -> Result<String, ToSQLError> {
                         value
                     )),
                     line_number: *line_number,
-                    column_number: *column_number,
+                    column: *column,
                 })
             }
         },
@@ -146,7 +146,7 @@ pub fn default_fn(arguments: &Arguments) -> Result<String, ToSQLError> {
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::MissingArgument,
                 line_number: arguments.line_number,
-                column_number: arguments.column_number,
+                column: arguments.column,
             })
         }
     }?;
@@ -160,7 +160,7 @@ fn assert_got_single_arg(func: &str, arguments: &Arguments) -> Result<(), ToSQLE
         _ => Err(ToSQLError::FunctionError {
             source: FunctionError::ExpectsExactlyOneArgument(func.to_string()),
             line_number: arguments.line_number,
-            column_number: arguments.column_number,
+            column: arguments.column,
         }),
     }
 }

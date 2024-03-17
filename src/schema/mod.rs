@@ -10,7 +10,7 @@ pub struct Enum {
     pub name: String,
     pub variants: Vec<EnumVariant>,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl Enum {
@@ -18,13 +18,13 @@ impl Enum {
         name: String,
         variants: Vec<EnumVariant>,
         line_number: usize,
-        column_number: usize,
+        column: usize,
     ) -> Self {
         Enum {
             name,
             variants,
             line_number,
-            column_number,
+            column,
         }
     }
 }
@@ -33,15 +33,15 @@ impl Enum {
 pub struct EnumVariant {
     pub name: String,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl EnumVariant {
-    pub fn new(name: String, line_number: usize, column_number: usize) -> Self {
+    pub fn new(name: String, line_number: usize, column: usize) -> Self {
         EnumVariant {
             name,
             line_number,
-            column_number,
+            column,
         }
     }
 }
@@ -62,7 +62,7 @@ pub struct FunctionCall {
     pub arguments: Arguments,
     pub property_name: String,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl FunctionCall {
@@ -71,14 +71,14 @@ impl FunctionCall {
         name: String,
         arguments: Vec<Argument>,
         line_number: usize,
-        column_number: usize,
+        column: usize,
     ) -> Self {
         FunctionCall {
             name,
-            arguments: Arguments::from_vec(arguments, line_number, column_number),
+            arguments: Arguments::from_vec(arguments, line_number, column),
             property_name,
             line_number,
-            column_number,
+            column,
         }
     }
 }
@@ -87,15 +87,15 @@ impl FunctionCall {
 pub struct Arguments {
     pub list: Vec<Argument>,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl Arguments {
-    pub fn from_vec(arguments: Vec<Argument>, line_number: usize, column_number: usize) -> Self {
+    pub fn from_vec(arguments: Vec<Argument>, line_number: usize, column: usize) -> Self {
         Arguments {
             list: arguments,
             line_number,
-            column_number,
+            column,
         }
     }
 
@@ -108,15 +108,15 @@ impl Arguments {
 pub struct Argument {
     pub value: PropertyValue,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl Argument {
-    pub fn new(value: PropertyValue, line_number: usize, column_number: usize) -> Self {
+    pub fn new(value: PropertyValue, line_number: usize, column: usize) -> Self {
         Argument {
             value,
             line_number,
-            column_number,
+            column,
         }
     }
 }
@@ -127,7 +127,7 @@ pub struct Field {
     pub data_type: rayql::types::DataType,
     pub properties: Vec<PropertyValue>,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl Field {
@@ -136,14 +136,14 @@ impl Field {
         data_type: rayql::types::DataType,
         properties: Vec<PropertyValue>,
         line_number: usize,
-        column_number: usize,
+        column: usize,
     ) -> Self {
         Field {
             name,
             data_type,
             properties,
             line_number,
-            column_number,
+            column,
         }
     }
 }
@@ -153,16 +153,16 @@ pub struct Model {
     pub name: String,
     pub fields: Vec<Field>,
     pub line_number: usize,
-    pub column_number: usize,
+    pub column: usize,
 }
 
 impl Model {
-    pub fn new(name: String, fields: Vec<Field>, line_number: usize, column_number: usize) -> Self {
+    pub fn new(name: String, fields: Vec<Field>, line_number: usize, column: usize) -> Self {
         Model {
             name,
             fields,
             line_number,
-            column_number,
+            column,
         }
     }
 }

@@ -27,14 +27,14 @@ fn generate_tokenization_error_message(
     code: &str,
 ) -> String {
     match tokenization_error {
-        TokenizationError::UnexpectedCharacter { char, line, col }
-        | TokenizationError::UnknownEscapeSequence { char, line, col } => {
-            generate_character_error_message(*char, *line, *col, code)
+        TokenizationError::UnexpectedCharacter { char, line, column }
+        | TokenizationError::UnknownEscapeSequence { char, line, column } => {
+            generate_character_error_message(*char, *line, *column, code)
         }
-        TokenizationError::StringLiteralOpened { line, col } => {
+        TokenizationError::StringLiteralOpened { line, column } => {
             format!(
                 "\x1b[31mString literal opened at line {}, column {}\x1b[0m",
-                line, col
+                line, column
             )
         }
         TokenizationError::UnexpectedEndOfInput => {
@@ -43,16 +43,16 @@ fn generate_tokenization_error_message(
     }
 }
 
-fn generate_character_error_message(char: char, line: usize, col: usize, code: &str) -> String {
+fn generate_character_error_message(char: char, line: usize, column: usize, code: &str) -> String {
     let mut formatted_code = String::new();
     for (line_number, line_content) in code.lines().enumerate() {
         if line_number + 1 == line {
             formatted_code.push_str(&format!(
                 "\x1b[31mError: Unexpected character '{}' at line {}, column {}\x1b[0m\n",
-                char, line, col
+                char, line, column
             ));
             formatted_code.push_str(&format!("{}\n", line_content));
-            let caret_spacing = " ".repeat(col - 1);
+            let caret_spacing = " ".repeat(column - 1);
             formatted_code.push_str(&format!("{}^", caret_spacing));
         }
     }
@@ -64,28 +64,28 @@ pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
         ToSQLError::EnumNotFound {
             enum_name,
             line_number,
-            column_number,
+            column,
         } => {
             format!(
                 "\x1b[31mEnum not found: {} at line {}, column {}\x1b[0m",
-                enum_name, line_number, column_number
+                enum_name, line_number, column
             )
         }
         ToSQLError::ConversionError {
             reason,
             line_number,
-            column_number,
+            column,
         } => {
             format!(
                 "\x1b[31mConversion error: {} at line {}, column {}\x1b[0m",
-                reason, line_number, column_number
+                reason, line_number, column
             )
         }
         ToSQLError::FunctionError {
             source,
             line_number,
-            column_number,
-        } => pretty_function_error_message(source, code, *line_number, *column_number),
+            column,
+        } => pretty_function_error_message(source, code, *line_number, *column),
     }
 }
 
@@ -93,7 +93,7 @@ fn pretty_function_error_message(
     error: &FunctionError,
     _code: &str,
     line_number: usize,
-    column_number: usize,
+    column: usize,
 ) -> String {
     match error {
         FunctionError::InvalidArgument(msg) => {
@@ -106,18 +106,18 @@ fn pretty_function_error_message(
         }
         FunctionError::MissingArgument => format!(
             "\x1b[31mMissing argument at line {}, column {}\x1b[0m",
-            line_number, column_number,
+            line_number, column,
         ),
         FunctionError::ExpectsExactlyOneArgument(func) => {
             format!(
                 "\x1b[31m{func} takes exactly one argument, error at line {}, column {}\x1b[0m",
-                line_number, column_number
+                line_number, column
             )
         }
         FunctionError::UndefinedFunction(func) => {
             format!(
                 "\x1b[31mUndefined function '{func}' called at line {}, column {}\x1b[0m",
-                line_number, column_number
+                line_number, column
             )
         }
     }

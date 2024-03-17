@@ -25,7 +25,7 @@ impl Schema {
                                 return Err(rayql::sql::ToSQLError::EnumNotFound {
                                     enum_name: enum_name.clone(),
                                     line_number: field.line_number,
-                                    column_number: field.column_number,
+                                    column: field.column,
                                 })
                             }
                         };
@@ -78,7 +78,7 @@ impl FunctionCall {
             _ => Err(rayql::sql::ToSQLError::FunctionError {
                 source: rayql::sql::FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,
-                column_number: self.column_number,
+                column: self.column,
             }),
         }
     }

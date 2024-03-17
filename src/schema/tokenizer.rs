@@ -1,11 +1,11 @@
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum TokenizationError {
-    #[error("Unexpected character '{char}' at line {line}, column {col}")]
-    UnexpectedCharacter { char: char, line: usize, col: usize },
-    #[error("Unknown Escape Sequence '{char}' at line {line}, column {col}")]
-    UnknownEscapeSequence { char: char, line: usize, col: usize },
-    #[error("String literal opened at line {line}, column {col}")]
-    StringLiteralOpened { line: usize, col: usize },
+    #[error("Unexpected character '{char}' at line {line}, column {column}")]
+    UnexpectedCharacter { char: char, line: usize, column: usize },
+    #[error("Unknown Escape Sequence '{char}' at line {line}, column {column}")]
+    UnknownEscapeSequence { char: char, line: usize, column: usize },
+    #[error("String literal opened at line {line}, column {column}")]
+    StringLiteralOpened { line: usize, column: usize },
     #[error("Unexpected End of Input")]
     UnexpectedEndOfInput,
 }
@@ -112,10 +112,10 @@ pub fn tokenize_line(
     let mut buffer = String::new();
     let mut chars = line.chars().peekable();
 
-    let mut column_number = 0;
+    let mut column = 0;
 
     while let Some(ch) = chars.next() {
-        column_number += 1;
+        column += 1;
 
         if ch == '#' && !in_string_literal {
             break;
@@ -132,7 +132,7 @@ pub fn tokenize_line(
                         return Err(TokenizationError::UnknownEscapeSequence {
                             char: ch,
                             line: line_number,
-                            col: column_number,
+                            column: column,
                         })
                     }
                 }
@@ -143,7 +143,7 @@ pub fn tokenize_line(
                 tokens.push((
                     Token::StringLiteral(buffer.clone()),
                     line_number,
-                    column_number - buffer.len(),
+                    column - buffer.len(),
                 ));
                 buffer.clear();
             } else {
@@ -154,7 +154,7 @@ pub fn tokenize_line(
                 tokens.push((
                     get_token(&buffer),
                     line_number,
-                    column_number - buffer.len(),
+                    column - buffer.len(),
                 ));
                 buffer.clear();
             }
@@ -172,7 +172,7 @@ pub fn tokenize_line(
                             return Err(TokenizationError::UnexpectedCharacter {
                                 char: ch,
                                 line: line_number,
-                                col: column_number,
+                                column: column,
                             });
                         }
                     } else {
@@ -184,7 +184,7 @@ pub fn tokenize_line(
                     tokens.push((
                         Token::Optional(Box::new(token)),
                         line_number,
-                        column_number - buffer.len(),
+                        column - buffer.len(),
                     ));
                     buffer.clear();
                 }
@@ -194,7 +194,7 @@ pub fn tokenize_line(
                         tokens.push((
                             get_token(&buffer),
                             line_number,
-                            column_number - buffer.len(),
+                            column - buffer.len(),
                         ));
                         buffer.clear();
                     }
@@ -210,12 +210,12 @@ pub fn tokenize_line(
                             return Err(TokenizationError::UnexpectedCharacter {
                                 char: ch,
                                 line: line_number,
-                                col: column_number,
+                                column: column,
                             });
                         }
                     };
 
-                    tokens.push((token, line_number, column_number));
+                    tokens.push((token, line_number, column));
                 }
             }
         }
@@ -224,7 +224,7 @@ pub fn tokenize_line(
     if in_string_literal {
         return Err(TokenizationError::StringLiteralOpened {
             line: line_number,
-            col: column_number,
+            column: column,
         });
     }
 
@@ -232,7 +232,7 @@ pub fn tokenize_line(
         tokens.push((
             get_token(&buffer),
             line_number,
-            column_number - buffer.len(),
+            column - buffer.len(),
         ));
     }
 
