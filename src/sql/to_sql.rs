@@ -46,7 +46,7 @@ impl Schema {
                 fields_sql.push(field_sql);
             }
             let model_sql = format!(
-                "CREATE TABLE {} (\n{}\n);",
+                "CREATE TABLE IF NOT EXISTS {} (\n{}\n);",
                 model.name,
                 fields_sql.join(",\n")
             );
