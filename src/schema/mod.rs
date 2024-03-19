@@ -62,6 +62,7 @@ pub enum PropertyValue {
     PrimaryKey,
     AutoIncrement,
     Unique,
+    Required,
 }
 
 #[derive(Debug, PartialEq, Clone)]

@@ -63,6 +63,7 @@ impl PropertyValue {
             PropertyValue::PrimaryKey => Ok("PRIMARY KEY".to_string()),
             PropertyValue::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
             PropertyValue::Unique => Ok("UNIQUE".to_string()),
+            PropertyValue::Required => Ok("NOT NULL".to_string()),
             PropertyValue::Identifier(id) => Ok(id.clone()),
             PropertyValue::FunctionCall(func) => func.to_sql(schema),
             PropertyValue::Value(value) => Ok(value.to_sql()),
