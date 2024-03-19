@@ -79,12 +79,12 @@ pub(crate) fn keyword_to_property_value(
     keyword: Keyword,
     line_number: &usize,
     column: &usize,
-) -> Result<rayql::schema::PropertyValue, ParseError> {
+) -> Result<rayql::schema::Property, ParseError> {
     match keyword {
-        Keyword::PrimaryKey => Ok(rayql::schema::PropertyValue::PrimaryKey),
-        Keyword::AutoIncrement => Ok(rayql::schema::PropertyValue::AutoIncrement),
-        Keyword::Unique => Ok(rayql::schema::PropertyValue::Unique),
-        Keyword::Required => Ok(rayql::schema::PropertyValue::Required),
+        Keyword::PrimaryKey => Ok(rayql::schema::Property::PrimaryKey),
+        Keyword::AutoIncrement => Ok(rayql::schema::Property::AutoIncrement),
+        Keyword::Unique => Ok(rayql::schema::Property::Unique),
+        Keyword::Required => Ok(rayql::schema::Property::Required),
         _ => Err(ParseError::UnexpectedToken {
             token: Token::Keyword(keyword),
             line_number: *line_number,

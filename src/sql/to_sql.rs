@@ -1,7 +1,7 @@
 use rayql::{
     schema::{
-        Argument, Arguments, Enum, EnumVariant, FunctionCall, Model, PropertyValue, Reference,
-        Schema,
+        Argument, ArgumentValue, Arguments, Enum, EnumVariant, FunctionCall, Model, Property,
+        Reference, Schema,
     },
     sql::error::{FunctionError, ToSQLError},
     types::DataType,
@@ -57,17 +57,15 @@ impl Schema {
     }
 }
 
-impl PropertyValue {
+impl Property {
     pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match &self {
-            PropertyValue::PrimaryKey => Ok("PRIMARY KEY".to_string()),
-            PropertyValue::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
-            PropertyValue::Unique => Ok("UNIQUE".to_string()),
-            PropertyValue::Required => Ok("NOT NULL".to_string()),
-            PropertyValue::Identifier(id) => Ok(id.clone()),
-            PropertyValue::FunctionCall(func) => func.to_sql(schema),
-            PropertyValue::Value(value) => Ok(value.to_sql()),
-            _ => unimplemented!(), // a reference should be wrapped in a function call
+            Property::PrimaryKey => Ok("PRIMARY KEY".to_string()),
+            Property::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
+            Property::Unique => Ok("UNIQUE".to_string()),
+            Property::Required => Ok("NOT NULL".to_string()),
+            Property::Type(t) => Ok(t.clone()),
+            Property::FunctionCall(func) => func.to_sql(schema),
         }
     }
 }
@@ -134,6 +132,12 @@ impl Enum {
     }
 }
 
+impl EnumVariant {
+    pub fn to_sql(&self) -> String {
+        self.name.to_string()
+    }
+}
+
 impl FunctionCall {
     pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match self.name.as_str() {
@@ -167,9 +171,14 @@ impl Argument {
     }
 }
 
-impl EnumVariant {
-    pub fn to_sql(&self) -> String {
-        self.name.to_string()
+impl ArgumentValue {
+    pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
+        match self {
+            ArgumentValue::Identifier(identifier) => Ok(identifier.clone()),
+            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
+            ArgumentValue::Value(value) => Ok(value.to_sql()),
+            _ => unimplemented!(),
+        }
     }
 }
 

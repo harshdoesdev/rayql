@@ -1,5 +1,5 @@
 use rayql::{
-    schema::{Arguments, PropertyValue, Schema},
+    schema::{ArgumentValue, Arguments, Schema},
     sql::error::{FunctionError, ToSQLError},
 };
 
@@ -16,8 +16,8 @@ pub fn min_function(
             line_number,
             column,
         }) => match value {
-            PropertyValue::Value(value) => Ok(value.to_sql()),
-            PropertyValue::FunctionCall(func) => func.to_sql(schema),
+            ArgumentValue::Value(value) => Ok(value.to_sql()),
+            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
             _ => {
                 return Err(ToSQLError::FunctionError {
                     source: FunctionError::InvalidArgument(format!(
@@ -54,8 +54,8 @@ pub fn max_function(
             line_number,
             column,
         }) => match value {
-            PropertyValue::Value(value) => Ok(value.to_sql()),
-            PropertyValue::FunctionCall(func) => func.to_sql(schema),
+            ArgumentValue::Value(value) => Ok(value.to_sql()),
+            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
             _ => {
                 return Err(ToSQLError::FunctionError {
                     source: FunctionError::InvalidArgument(format!(
@@ -89,7 +89,7 @@ pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToS
             line_number,
             column,
         }) => match value {
-            PropertyValue::Reference(reference) => reference.field_reference_to_sql(schema)?,
+            ArgumentValue::Reference(reference) => reference.field_reference_to_sql(schema)?,
             _ => {
                 return Err(ToSQLError::FunctionError {
                     source: FunctionError::InvalidArgument(
@@ -121,9 +121,9 @@ pub fn default_fn(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQ
             line_number,
             column,
         }) => match value {
-            PropertyValue::Value(value) => Ok(value.to_sql()),
-            PropertyValue::FunctionCall(func) => func.to_sql(schema),
-            PropertyValue::Reference(reference) => reference.variant_reference_to_sql(schema),
+            ArgumentValue::Value(value) => Ok(value.to_sql()),
+            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
+            ArgumentValue::Reference(reference) => reference.variant_reference_to_sql(schema),
             _ => {
                 return Err(ToSQLError::FunctionError {
                     source: FunctionError::InvalidArgument(format!(

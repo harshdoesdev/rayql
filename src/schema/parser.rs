@@ -138,15 +138,15 @@ fn parse_field(
                 tokens_iter.next();
                 if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
                     tokens_iter.next();
-                    properties.push(parse_function_call(
+                    properties.push(rayql::schema::Property::FunctionCall(parse_function_call(
                         name.clone(),
                         identifier.clone(),
                         tokens_iter,
-                    )?);
+                    )?));
                     continue;
                 }
 
-                properties.push(rayql::schema::PropertyValue::Identifier(identifier.clone()));
+                properties.push(rayql::schema::Property::Type(identifier.clone()));
             }
             Token::Keyword(keyword) => {
                 tokens_iter.next();
@@ -182,27 +182,29 @@ fn parse_function_call(
     property_name: String,
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
-) -> Result<rayql::schema::PropertyValue, ParseError> {
+) -> Result<rayql::schema::FunctionCall, ParseError> {
     let mut arguments: Vec<rayql::schema::Argument> = vec![];
 
     while let Some((token, line_number, column)) = tokens_iter.next() {
         match token {
             Token::ParenClose => {
-                return Ok(rayql::schema::PropertyValue::FunctionCall(
-                    rayql::schema::FunctionCall::new(
-                        property_name,
-                        name,
-                        arguments,
-                        *line_number,
-                        *column,
-                    ),
+                return Ok(rayql::schema::FunctionCall::new(
+                    property_name,
+                    name,
+                    arguments,
+                    *line_number,
+                    *column,
                 ))
             }
             Token::Identifier(identifier) => {
                 if let Some((Token::ParenOpen, line_number, column)) = tokens_iter.peek() {
                     tokens_iter.next();
                     arguments.push(Argument::new(
-                        parse_function_call(name.clone(), identifier.clone(), tokens_iter)?,
+                        rayql::schema::ArgumentValue::FunctionCall(parse_function_call(
+                            name.clone(),
+                            identifier.clone(),
+                            tokens_iter,
+                        )?),
                         *line_number,
                         *column,
                     ));
@@ -210,7 +212,7 @@ fn parse_function_call(
                 }
 
                 arguments.push(Argument::new(
-                    rayql::schema::PropertyValue::Identifier(identifier.clone()),
+                    rayql::schema::ArgumentValue::Identifier(identifier.clone()),
                     *line_number,
                     *column,
                 ));
@@ -226,7 +228,7 @@ fn parse_function_call(
                 }
 
                 arguments.push(Argument::new(
-                    rayql::schema::PropertyValue::Reference(rayql::schema::Reference::new(
+                    rayql::schema::ArgumentValue::Reference(rayql::schema::Reference::new(
                         entity.clone(),
                         property.clone(),
                         *line_number,
@@ -237,24 +239,24 @@ fn parse_function_call(
                 ));
             }
             Token::StringLiteral(s) => arguments.push(Argument::new(
-                rayql::schema::PropertyValue::Value(rayql::value::Value::StringLiteral(
+                rayql::schema::ArgumentValue::Value(rayql::value::Value::StringLiteral(
                     s.to_string(),
                 )),
                 *line_number,
                 *column,
             )),
             Token::Integer(i) => arguments.push(Argument::new(
-                rayql::schema::PropertyValue::Value(rayql::value::Value::Integer(i.to_owned())),
+                rayql::schema::ArgumentValue::Value(rayql::value::Value::Integer(i.to_owned())),
                 *line_number,
                 *column,
             )),
             Token::Real(r) => arguments.push(Argument::new(
-                rayql::schema::PropertyValue::Value(rayql::value::Value::Real(r.to_owned())),
+                rayql::schema::ArgumentValue::Value(rayql::value::Value::Real(r.to_owned())),
                 *line_number,
                 *column,
             )),
             Token::Boolean(b) => arguments.push(Argument::new(
-                rayql::schema::PropertyValue::Value(rayql::value::Value::Boolean(b.to_owned())),
+                rayql::schema::ArgumentValue::Value(rayql::value::Value::Boolean(b.to_owned())),
                 *line_number,
                 *column,
             )),

@@ -54,11 +54,9 @@ impl EnumVariant {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum PropertyValue {
-    Identifier(String),
-    Reference(Reference),
+pub enum Property {
+    Type(String),
     FunctionCall(FunctionCall),
-    Value(rayql::value::Value),
     PrimaryKey,
     AutoIncrement,
     Unique,
@@ -134,13 +132,13 @@ impl Arguments {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Argument {
-    pub value: PropertyValue,
+    pub value: ArgumentValue,
     pub line_number: usize,
     pub column: usize,
 }
 
 impl Argument {
-    pub fn new(value: PropertyValue, line_number: usize, column: usize) -> Self {
+    pub fn new(value: ArgumentValue, line_number: usize, column: usize) -> Self {
         Argument {
             value,
             line_number,
@@ -150,10 +148,18 @@ impl Argument {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum ArgumentValue {
+    Identifier(String),
+    Reference(Reference),
+    FunctionCall(FunctionCall),
+    Value(rayql::value::Value),
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Field {
     pub name: String,
     pub data_type: rayql::types::DataType,
-    pub properties: Vec<PropertyValue>,
+    pub properties: Vec<Property>,
     pub line_number: usize,
     pub column: usize,
 }
@@ -162,7 +168,7 @@ impl Field {
     pub fn new(
         name: String,
         data_type: rayql::types::DataType,
-        properties: Vec<PropertyValue>,
+        properties: Vec<Property>,
         line_number: usize,
         column: usize,
     ) -> Self {
