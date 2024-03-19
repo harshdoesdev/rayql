@@ -55,12 +55,10 @@ impl EnumVariant {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Property {
-    Type(String),
     FunctionCall(FunctionCall),
     PrimaryKey,
     AutoIncrement,
     Unique,
-    Required,
 }
 
 #[derive(Debug, PartialEq, Clone)]

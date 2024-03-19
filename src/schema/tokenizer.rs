@@ -53,7 +53,6 @@ pub enum Keyword {
     PrimaryKey,
     AutoIncrement,
     Unique,
-    Required,
 }
 
 pub fn get_keyword(token_str: &str) -> Option<Keyword> {
@@ -70,7 +69,6 @@ pub fn get_keyword(token_str: &str) -> Option<Keyword> {
         "primary_key" => Some(Keyword::PrimaryKey),
         "auto_increment" => Some(Keyword::AutoIncrement),
         "unique" => Some(Keyword::Unique),
-        "required" => Some(Keyword::Required),
         _ => None,
     }
 }

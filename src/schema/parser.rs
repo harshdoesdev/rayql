@@ -146,7 +146,11 @@ fn parse_field(
                     continue;
                 }
 
-                properties.push(rayql::schema::Property::Type(identifier.clone()));
+                return Err(ParseError::UnexpectedToken {
+                    token: token.clone(),
+                    line_number: *line_number,
+                    column: *column,
+                });
             }
             Token::Keyword(keyword) => {
                 tokens_iter.next();

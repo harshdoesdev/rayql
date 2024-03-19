@@ -15,7 +15,7 @@ impl Schema {
         for model in &self.models {
             let mut fields_sql = Vec::new();
             for field in &model.fields {
-                let mut field_sql = format!("    {} {}", field.name, field.data_type.to_sql(),);
+                let mut field_sql = format!("    {} {}", field.name, field.data_type.to_sql(true));
 
                 if let DataType::Enum(enum_name) = &field.data_type {
                     let variants: Vec<String> = match self.get_enum(enum_name) {
@@ -63,8 +63,6 @@ impl Property {
             Property::PrimaryKey => Ok("PRIMARY KEY".to_string()),
             Property::AutoIncrement => Ok("AUTOINCREMENT".to_string()),
             Property::Unique => Ok("UNIQUE".to_string()),
-            Property::Required => Ok("NOT NULL".to_string()),
-            Property::Type(t) => Ok(t.clone()),
             Property::FunctionCall(func) => func.to_sql(schema),
         }
     }
@@ -206,15 +204,17 @@ impl Value {
 }
 
 impl DataType {
-    pub fn to_sql(&self) -> String {
+    pub fn to_sql(&self, not_null: bool) -> String {
+        let null_suffix = if not_null { "NOT NULL" } else { "NULL" };
+
         match &self {
-            DataType::String | DataType::Enum(_) => "TEXT".to_string(),
-            DataType::Integer => "INTEGER".to_string(),
-            DataType::Real => "REAL".to_string(),
-            DataType::Blob => "BLOB".to_string(),
-            DataType::Boolean => "BOOLEAN".to_string(),
-            DataType::Timestamp => "TIMESTAMP".to_string(),
-            DataType::Optional(inner_type) => format!("{} NULL", inner_type.to_sql()),
+            DataType::String | DataType::Enum(_) => format!("TEXT {}", null_suffix),
+            DataType::Integer => format!("INTEGER {}", null_suffix),
+            DataType::Real => format!("REAL {}", null_suffix),
+            DataType::Blob => format!("BLOB {}", null_suffix),
+            DataType::Boolean => format!("BOOLEAN {}", null_suffix),
+            DataType::Timestamp => format!("TIMESTAMP {}", null_suffix),
+            DataType::Optional(inner_type) => inner_type.to_sql(false),
         }
     }
 }
