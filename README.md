@@ -1,6 +1,13 @@
 # RayQL
 
-RayQL is a schema definition and query language for SQLite.
+<p align="center">
+    <img src="./banner.png" alt="RayQL Logo">
+    <br />
+    <br />
+    <b>RayQL is a schema definition and query language for SQLite.</b>
+    <br />
+    <br />
+</p>
 
 ## Schema Definition
 
