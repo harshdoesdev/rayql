@@ -1,6 +1,4 @@
-use clap::{Parser, Subcommand};
-
-pub mod commands;
+use clap::{command, Args, Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -11,8 +9,18 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Generate {
-        #[clap()]
-        filename: String,
-    },
+    Generate,
+    Db(DbArgs),
+}
+
+#[derive(Args)]
+#[command(flatten_help = true)]
+pub struct DbArgs {
+    #[command(subcommand)]
+    pub command: Option<DbCommands>,
+}
+
+#[derive(Subcommand)]
+pub enum DbCommands {
+    Push,
 }

@@ -1,6 +1,8 @@
-pub fn handle_generate(filename: String) {
+pub async fn push() {
+    let db = libsql_client::Client::from_env().await.unwrap();
+
     let current_dir = std::env::current_dir().expect("Failed to read current dir.");
-    let file_path = current_dir.join(filename);
+    let file_path = current_dir.join("schema.rayql");
 
     let code = match std::fs::read_to_string(file_path) {
         Ok(content) => content,
@@ -26,24 +28,7 @@ pub fn handle_generate(filename: String) {
         }
     };
 
-    let output = sql_statements
-        .iter()
-        .map(|(model_name, sql_statement)| {
-            format!(
-                "-- CREATE TABLE FOR MODEL `{}`\n\n{}\n",
-                model_name, sql_statement
-            )
-        })
-        .collect::<Vec<String>>()
-        .join("\n");
+    db.batch(sql_statements).await.unwrap();
 
-    let output_dir = current_dir.join("migrations");
-
-    if !output_dir.exists() {
-        std::fs::create_dir(&output_dir).expect("Could not create migrations directory.");
-    }
-
-    let output_file = output_dir.join("000-migrations.sql");
-
-    std::fs::write(output_file, output).expect("Could not write SQL migrations file.");
+    println!("Success!");
 }

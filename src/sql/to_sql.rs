@@ -9,7 +9,7 @@ use rayql::{
 };
 
 impl Schema {
-    pub fn to_sql(&self) -> Result<Vec<(String, String)>, ToSQLError> {
+    pub fn to_sql(&self) -> Result<Vec<String>, ToSQLError> {
         let mut sql_statements = Vec::new();
 
         for model in &self.models {
@@ -50,7 +50,7 @@ impl Schema {
                 model.name,
                 fields_sql.join(",\n")
             );
-            sql_statements.push((model.name.clone(), model_sql));
+            sql_statements.push(model_sql);
         }
 
         Ok(sql_statements)
