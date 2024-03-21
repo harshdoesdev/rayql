@@ -9,7 +9,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Generate,
+    Print,
     Db(DbArgs),
 }
 
