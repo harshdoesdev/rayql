@@ -7,7 +7,7 @@ pub fn print_schema() {
     let current_dir = std::env::current_dir().expect("Failed to read current dir.");
     let file_path = current_dir.join("schema.rayql");
 
-    let code = match std::fs::read_to_string(&file_path) {
+    let code = match std::fs::read_to_string(file_path) {
         Ok(content) => content,
         Err(e) => {
             eprintln!("Error reading file: {}", e);

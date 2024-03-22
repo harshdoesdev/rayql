@@ -99,22 +99,16 @@ fn get_single_argument(
     func: &str,
     arguments: &Arguments,
 ) -> Result<rayql::schema::Argument, ToSQLError> {
-    if arguments.list.len() > 1 {
-        return Err(ToSQLError::FunctionError {
-            source: FunctionError::ExpectsExactlyOneArgument(func.to_string()),
+    match arguments.list.as_slice() {
+        [arg] => Ok(arg.clone()),
+        _ => Err(ToSQLError::FunctionError {
+            source: if arguments.list.is_empty() {
+                FunctionError::MissingArgument
+            } else {
+                FunctionError::ExpectsExactlyOneArgument(func.to_string())
+            },
             line_number: arguments.line_number,
             column: arguments.column,
-        });
-    }
-
-    match arguments.get_first() {
-        Some(arg) => Ok(arg.clone()),
-        None => {
-            return Err(ToSQLError::FunctionError {
-                source: FunctionError::MissingArgument,
-                line_number: arguments.line_number,
-                column: arguments.column,
-            })
-        }
+        }),
     }
 }
