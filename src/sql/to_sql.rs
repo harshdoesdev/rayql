@@ -206,15 +206,16 @@ impl Value {
 impl DataType {
     pub fn to_sql(&self, not_null: bool) -> String {
         let null_suffix = if not_null { "NOT NULL" } else { "NULL" };
+        let data_type = match &self {
+            DataType::String | DataType::Enum(_) => "TEXT",
+            DataType::Integer => "INTEGER",
+            DataType::Real => "REAL",
+            DataType::Blob => "BLOB",
+            DataType::Boolean => "BOOLEAN",
+            DataType::Timestamp => "TIMESTAMP",
+            DataType::Optional(inner_type) => return inner_type.to_sql(false),
+        };
 
-        match &self {
-            DataType::String | DataType::Enum(_) => format!("TEXT {}", null_suffix),
-            DataType::Integer => format!("INTEGER {}", null_suffix),
-            DataType::Real => format!("REAL {}", null_suffix),
-            DataType::Blob => format!("BLOB {}", null_suffix),
-            DataType::Boolean => format!("BOOLEAN {}", null_suffix),
-            DataType::Timestamp => format!("TIMESTAMP {}", null_suffix),
-            DataType::Optional(inner_type) => inner_type.to_sql(false),
-        }
+        format!("{} {}", data_type, null_suffix)
     }
 }
