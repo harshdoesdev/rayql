@@ -3,21 +3,23 @@ use rayql::{
     sql::error::{FunctionError, ToSQLError},
 };
 
-pub fn min(
+pub fn check_value(
     schema: &Schema,
     property_name: impl Into<String>,
     arguments: &Arguments,
+    check_type: &str,
+    operator: &str,
 ) -> Result<String, ToSQLError> {
-    let argument = get_single_argument("min", arguments)?;
+    let argument = get_single_argument(check_type, arguments)?;
 
-    let min_value = match argument.value {
+    let value = match argument.value {
         ArgumentValue::Value(value) => Ok(value.to_sql()),
         ArgumentValue::FunctionCall(func) => func.to_sql(schema),
         _ => {
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::InvalidArgument(format!(
-                    "min value must be a value, got {:?}",
-                    argument.value
+                    "{} value must be a value, got {:?}",
+                    check_type, argument.value
                 )),
                 line_number: argument.line_number,
                 column: argument.column,
@@ -25,7 +27,20 @@ pub fn min(
         }
     }?;
 
-    Ok(format!("CHECK({} >= {})", property_name.into(), min_value))
+    Ok(format!(
+        "CHECK({} {} {})",
+        property_name.into(),
+        operator,
+        value
+    ))
+}
+
+pub fn min(
+    schema: &Schema,
+    property_name: impl Into<String>,
+    arguments: &Arguments,
+) -> Result<String, ToSQLError> {
+    check_value(schema, property_name, arguments, "min", ">=")
 }
 
 pub fn max(
@@ -33,24 +48,7 @@ pub fn max(
     property_name: impl Into<String>,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    let argument = get_single_argument("min", arguments)?;
-
-    let max_value = match argument.value {
-        ArgumentValue::Value(value) => Ok(value.to_sql()),
-        ArgumentValue::FunctionCall(func) => func.to_sql(schema),
-        _ => {
-            return Err(ToSQLError::FunctionError {
-                source: FunctionError::InvalidArgument(format!(
-                    "max value must be a value, got {:?}",
-                    argument.value
-                )),
-                line_number: argument.line_number,
-                column: argument.column,
-            })
-        }
-    }?;
-
-    Ok(format!("CHECK({} <= {})", property_name.into(), max_value))
+    check_value(schema, property_name, arguments, "max", "<=")
 }
 
 pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
