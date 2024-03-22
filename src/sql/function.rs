@@ -3,7 +3,7 @@ use rayql::{
     sql::error::{FunctionError, ToSQLError},
 };
 
-pub fn min_function(
+pub fn min(
     schema: &Schema,
     property_name: impl Into<String>,
     arguments: &Arguments,
@@ -28,7 +28,7 @@ pub fn min_function(
     Ok(format!("CHECK({} >= {})", property_name.into(), min_value))
 }
 
-pub fn max_function(
+pub fn max(
     schema: &Schema,
     property_name: impl Into<String>,
     arguments: &Arguments,
@@ -73,7 +73,7 @@ pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToS
     Ok(format!("REFERENCES {}", reference))
 }
 
-pub fn default_fn(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
+pub fn default(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
     let argument = get_single_argument("default", arguments)?;
 
     let value = match argument.value {
