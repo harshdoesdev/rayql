@@ -123,7 +123,7 @@ impl Arguments {
         }
     }
 
-    pub fn first(&self) -> Option<&Argument> {
+    pub fn get_first(&self) -> Option<&Argument> {
         self.list.first()
     }
 }

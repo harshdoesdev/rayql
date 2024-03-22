@@ -8,32 +8,19 @@ pub fn min_function(
     property_name: impl Into<String>,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    assert_got_single_arg("min", arguments)?;
+    let argument = get_single_argument("min", arguments)?;
 
-    let min_value = match arguments.first() {
-        Some(rayql::schema::Argument {
-            value,
-            line_number,
-            column,
-        }) => match value {
-            ArgumentValue::Value(value) => Ok(value.to_sql()),
-            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
-            _ => {
-                return Err(ToSQLError::FunctionError {
-                    source: FunctionError::InvalidArgument(format!(
-                        "min value must be a value, got {:?}",
-                        value
-                    )),
-                    line_number: *line_number,
-                    column: *column,
-                })
-            }
-        },
-        None => {
+    let min_value = match argument.value {
+        ArgumentValue::Value(value) => Ok(value.to_sql()),
+        ArgumentValue::FunctionCall(func) => func.to_sql(schema),
+        _ => {
             return Err(ToSQLError::FunctionError {
-                source: FunctionError::MissingArgument,
-                line_number: arguments.line_number,
-                column: arguments.column,
+                source: FunctionError::InvalidArgument(format!(
+                    "min value must be a value, got {:?}",
+                    argument.value
+                )),
+                line_number: argument.line_number,
+                column: argument.column,
             })
         }
     }?;
@@ -46,32 +33,19 @@ pub fn max_function(
     property_name: impl Into<String>,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    assert_got_single_arg("min", arguments)?;
+    let argument = get_single_argument("min", arguments)?;
 
-    let max_value = match arguments.first() {
-        Some(rayql::schema::Argument {
-            value,
-            line_number,
-            column,
-        }) => match value {
-            ArgumentValue::Value(value) => Ok(value.to_sql()),
-            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
-            _ => {
-                return Err(ToSQLError::FunctionError {
-                    source: FunctionError::InvalidArgument(format!(
-                        "max value must be a value, got {:?}",
-                        value
-                    )),
-                    line_number: *line_number,
-                    column: *column,
-                })
-            }
-        },
-        None => {
+    let max_value = match argument.value {
+        ArgumentValue::Value(value) => Ok(value.to_sql()),
+        ArgumentValue::FunctionCall(func) => func.to_sql(schema),
+        _ => {
             return Err(ToSQLError::FunctionError {
-                source: FunctionError::MissingArgument,
-                line_number: arguments.line_number,
-                column: arguments.column,
+                source: FunctionError::InvalidArgument(format!(
+                    "max value must be a value, got {:?}",
+                    argument.value
+                )),
+                line_number: argument.line_number,
+                column: argument.column,
             })
         }
     }?;
@@ -80,31 +54,18 @@ pub fn max_function(
 }
 
 pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
-    assert_got_single_arg("foreign_key", arguments)?;
+    let argument = get_single_argument("foreign_key", arguments)?;
 
-    // Todo: Move this to a separate, re-usable function
-    let reference = match arguments.first() {
-        Some(rayql::schema::Argument {
-            value,
-            line_number,
-            column,
-        }) => match value {
-            ArgumentValue::Reference(reference) => reference.field_reference_to_sql(schema)?,
-            _ => {
-                return Err(ToSQLError::FunctionError {
-                    source: FunctionError::InvalidArgument(
-                        "foreign key value must be a reference".to_string(),
-                    ),
-                    line_number: *line_number,
-                    column: *column,
-                })
-            }
-        },
-        None => {
+    let reference = match argument.value {
+        ArgumentValue::Reference(reference) => reference.field_reference_to_sql(schema)?,
+        _ => {
             return Err(ToSQLError::FunctionError {
-                source: FunctionError::MissingArgument,
-                line_number: arguments.line_number,
-                column: arguments.column,
+                source: FunctionError::InvalidArgument(format!(
+                    "foreign key value must be a reference, got {:?}",
+                    argument.value
+                )),
+                line_number: argument.line_number,
+                column: argument.column,
             })
         }
     };
@@ -113,33 +74,20 @@ pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToS
 }
 
 pub fn default_fn(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
-    assert_got_single_arg("default", arguments)?;
+    let argument = get_single_argument("default", arguments)?;
 
-    let value = match arguments.first() {
-        Some(rayql::schema::Argument {
-            value,
-            line_number,
-            column,
-        }) => match value {
-            ArgumentValue::Value(value) => Ok(value.to_sql()),
-            ArgumentValue::FunctionCall(func) => func.to_sql(schema),
-            ArgumentValue::Reference(reference) => reference.variant_reference_to_sql(schema),
-            _ => {
-                return Err(ToSQLError::FunctionError {
-                    source: FunctionError::InvalidArgument(format!(
-                        "default value must be a value, got {:?}",
-                        value
-                    )),
-                    line_number: *line_number,
-                    column: *column,
-                })
-            }
-        },
-        None => {
+    let value = match argument.value {
+        ArgumentValue::Value(value) => Ok(value.to_sql()),
+        ArgumentValue::FunctionCall(func) => func.to_sql(schema),
+        ArgumentValue::Reference(reference) => reference.variant_reference_to_sql(schema),
+        _ => {
             return Err(ToSQLError::FunctionError {
-                source: FunctionError::MissingArgument,
-                line_number: arguments.line_number,
-                column: arguments.column,
+                source: FunctionError::InvalidArgument(format!(
+                    "default value must be a value, got {:?}",
+                    argument.value,
+                )),
+                line_number: argument.line_number,
+                column: argument.column,
             })
         }
     }?;
@@ -147,13 +95,26 @@ pub fn default_fn(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQ
     Ok(format!("DEFAULT {}", value))
 }
 
-fn assert_got_single_arg(func: &str, arguments: &Arguments) -> Result<(), ToSQLError> {
-    match arguments.list.len() {
-        1 => Ok(()),
-        _ => Err(ToSQLError::FunctionError {
+fn get_single_argument(
+    func: &str,
+    arguments: &Arguments,
+) -> Result<rayql::schema::Argument, ToSQLError> {
+    if arguments.list.len() > 1 {
+        return Err(ToSQLError::FunctionError {
             source: FunctionError::ExpectsExactlyOneArgument(func.to_string()),
             line_number: arguments.line_number,
             column: arguments.column,
-        }),
+        });
+    }
+
+    match arguments.get_first() {
+        Some(arg) => Ok(arg.clone()),
+        None => {
+            return Err(ToSQLError::FunctionError {
+                source: FunctionError::MissingArgument,
+                line_number: arguments.line_number,
+                column: arguments.column,
+            })
+        }
     }
 }
