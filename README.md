@@ -11,9 +11,9 @@
 
 ## Schema Definition
 
-You can define your database schema by creating a RayQL file called `schema.rayql` and then running `rayql generate schema.rayql`.
+You can define your database schema by creating a RayQL file called `schema.rayql`.
 
-For example, it may look something like this:
+For example, it might look something like this:
 
 ```rayql
 # Enum for user types
@@ -45,7 +45,7 @@ model post {
 }
 ```
 
-It will generate a SQL file in the migrations table, which should look something like this:
+Then, when you run the `rayql print` command, it will generate and output the SQL equivalent of that model, which for the above example should look something like this:
 
 ```sql
 -- CREATE TABLE FOR MODEL `user`
