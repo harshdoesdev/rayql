@@ -48,8 +48,6 @@ model post {
 Then, when you run the `rayql print` command, it will generate and output the SQL equivalent of that model, which for the above example should look something like this:
 
 ```sql
--- CREATE TABLE FOR MODEL `user`
-
 CREATE TABLE IF NOT EXISTS user (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -58,13 +56,12 @@ CREATE TABLE IF NOT EXISTS user (
     user_type TEXT NOT NULL CHECK(user_type IN ('admin', 'developer', 'normal')) DEFAULT 'normal'
 );
 
--- CREATE TABLE FOR MODEL `post`
-
 CREATE TABLE IF NOT EXISTS post (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL DEFAULT 'New Post',
     content TEXT NOT NULL,
-    author_id INTEGER NOT NULL REFERENCES user(id),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    author_id INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES user(id)
 );
 ```
