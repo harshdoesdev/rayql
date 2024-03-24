@@ -8,3 +8,4 @@ pub mod types;
 mod value;
 pub use value::Value;
 pub mod cli;
+pub mod db;

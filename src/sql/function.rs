@@ -51,7 +51,11 @@ pub fn max(
     check_value(schema, property_name, arguments, "max", "<=")
 }
 
-pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
+pub fn foreign_key(
+    schema: &Schema,
+    arguments: &Arguments,
+    property_name: String,
+) -> Result<String, ToSQLError> {
     let argument = get_single_argument("foreign_key", arguments)?;
 
     let reference = match argument.value {
@@ -60,6 +64,29 @@ pub fn foreign_key(schema: &Schema, arguments: &Arguments) -> Result<String, ToS
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::InvalidArgument(format!(
                     "foreign key value must be a reference, got {:?}",
+                    argument.value
+                )),
+                line_number: argument.line_number,
+                column: argument.column,
+            })
+        }
+    };
+
+    Ok(format!(
+        "    FOREIGN KEY ({}) REFERENCES {}",
+        property_name, reference
+    ))
+}
+
+pub fn references(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
+    let argument = get_single_argument("references", arguments)?;
+
+    let reference = match argument.value {
+        ArgumentValue::Reference(reference) => reference.field_reference_to_sql(schema)?,
+        _ => {
+            return Err(ToSQLError::FunctionError {
+                source: FunctionError::InvalidArgument(format!(
+                    "references value must be a reference, got {:?}",
                     argument.value
                 )),
                 line_number: argument.line_number,

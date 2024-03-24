@@ -14,6 +14,8 @@ impl Schema {
 
         for model in &self.models {
             let mut fields_sql = Vec::new();
+            let mut fk_sql = Vec::new();
+
             for field in &model.fields {
                 let mut field_sql = format!("    {} {}", field.name, field.data_type.to_sql(true));
 
@@ -40,11 +42,26 @@ impl Schema {
                 }
 
                 for prop in &field.properties {
-                    field_sql.push_str(&format!(" {}", prop.to_sql(self)?));
+                    match prop {
+                        Property::FunctionCall(FunctionCall {
+                            name,
+                            property_name,
+                            arguments,
+                            ..
+                        }) if name.eq("foreign_key") => {
+                            fk_sql.push(rayql::sql::function::foreign_key(
+                                self,
+                                arguments,
+                                property_name.to_string(),
+                            )?);
+                        }
+                        _ => field_sql.push_str(&format!(" {}", prop.to_sql(self)?)),
+                    }
                 }
 
                 fields_sql.push(field_sql);
             }
+            fields_sql.extend(fk_sql);
             let model_sql = format!(
                 "CREATE TABLE IF NOT EXISTS {} (\n{}\n);",
                 model.name,
@@ -142,7 +159,7 @@ impl FunctionCall {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
             "min" => rayql::sql::function::min(schema, &self.property_name, &self.arguments),
             "max" => rayql::sql::function::max(schema, &self.property_name, &self.arguments),
-            "foreign_key" => rayql::sql::function::foreign_key(schema, &self.arguments),
+            "references" => rayql::sql::function::references(schema, &self.arguments),
             "default" => rayql::sql::function::default(schema, &self.arguments),
             _ => Err(ToSQLError::FunctionError {
                 source: FunctionError::UndefinedFunction(self.name.clone()),
