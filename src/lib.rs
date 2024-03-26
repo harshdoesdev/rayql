@@ -1,11 +1,26 @@
-extern crate self as rayql;
+use clap::{command, Args, Parser, Subcommand};
 
-mod schema;
-pub use schema::Schema;
-pub mod error;
-pub mod sql;
-pub mod types;
-mod value;
-pub use value::Value;
-pub mod cli;
-pub mod db;
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+pub enum Commands {
+    Print,
+    Db(DbArgs),
+}
+
+#[derive(Args)]
+#[command(flatten_help = true)]
+pub struct DbArgs {
+    #[command(subcommand)]
+    pub command: Option<DbCommands>,
+}
+
+#[derive(Subcommand)]
+pub enum DbCommands {
+    Push,
+}
