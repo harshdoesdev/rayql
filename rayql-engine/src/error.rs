@@ -76,7 +76,7 @@ fn generate_character_error_message(char: char, line: usize, column: usize, code
     formatted_code
 }
 
-pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
+pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
     match error {
         ToSQLError::UnknownReference {
             entity_name,
@@ -144,12 +144,12 @@ pub fn pretty_to_sql_error_message(error: &ToSQLError, code: &str) -> String {
             source,
             line_number,
             column,
-        } => pretty_function_error_message(source, code, *line_number, *column),
+        } => pretty_function_error_message(source, code, line_number, column),
     }
 }
 
 fn pretty_function_error_message(
-    error: &FunctionError,
+    error: FunctionError,
     _code: &str,
     line_number: usize,
     column: usize,

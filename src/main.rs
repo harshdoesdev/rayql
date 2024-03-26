@@ -46,7 +46,7 @@ pub fn print_schema() {
         Err(err) => {
             eprintln!(
                 "{}",
-                rayql_engine::error::pretty_to_sql_error_message(&err, &code)
+                rayql_engine::error::pretty_to_sql_error_message(err, &code)
             );
             std::process::exit(1);
         }
