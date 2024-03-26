@@ -15,7 +15,7 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             line_number,
             column,
         } => format!(
-            "\x1b[31mUnexpected token {} at line {}, column {}\x1b[0m",
+            "Unexpected token {} at line {}, column {}",
             token, line_number, column
         ),
         ParseError::InvalidReference {
@@ -24,7 +24,7 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             line_number,
             column,
         } => format!(
-            "\x1b[31mInvalid Reference: Cannot access '{}' of '{}' at line {}, column {}\x1b[0m",
+            "Invalid Reference: Cannot access '{}' of '{}' at line {}, column {}",
             property, entity, line_number, column
         ),
         ParseError::IdentifierAlreadyInUse {
@@ -32,10 +32,10 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
             line_number,
             column,
         } => format!(
-            "\x1b[31mCannot re-define '{}' at line {}, column {}\x1b[0m",
+            "Cannot re-define '{}' at line {}, column {}",
             identifier, line_number, column
         ),
-        ParseError::UnexpectedEndOfTokens => "\x1b[31mUnexpected end of tokens\x1b[0m".to_string(),
+        ParseError::UnexpectedEndOfTokens => "Unexpected end of tokens".to_string(),
     }
 }
 
@@ -49,14 +49,9 @@ fn generate_tokenization_error_message(
             generate_character_error_message(*char, *line, *column, code)
         }
         TokenizationError::StringLiteralOpened { line, column } => {
-            format!(
-                "\x1b[31mString literal opened at line {}, column {}\x1b[0m",
-                line, column
-            )
+            format!("String literal opened at line {}, column {}", line, column)
         }
-        TokenizationError::UnexpectedEndOfInput => {
-            "\x1b[31mUnexpected end of input\x1b[0m".to_string()
-        }
+        TokenizationError::UnexpectedEndOfInput => "Unexpected end of input".to_string(),
     }
 }
 
@@ -65,7 +60,7 @@ fn generate_character_error_message(char: char, line: usize, column: usize, code
     for (line_number, line_content) in code.lines().enumerate() {
         if line_number + 1 == line {
             formatted_code.push_str(&format!(
-                "\x1b[31mError: Unexpected character '{}' at line {}, column {}\x1b[0m\n",
+                "Error: Unexpected character '{}' at line {}, column {}\n",
                 char, line, column
             ));
             formatted_code.push_str(&format!("{}\n", line_content));
@@ -84,7 +79,7 @@ pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
             column,
         } => {
             format!(
-                "\x1b[31mUnknown reference: {} at line {}, column {}\x1b[0m",
+                "Unknown reference: {} at line {}, column {}",
                 entity_name, line_number, column
             )
         }
@@ -94,7 +89,7 @@ pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
             column,
         } => {
             format!(
-                "\x1b[31mEnum not found: {} at line {}, column {}\x1b[0m",
+                "Enum not found: {} at line {}, column {}",
                 enum_name, line_number, column
             )
         }
@@ -104,7 +99,7 @@ pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
             column,
         } => {
             format!(
-                "\x1b[31mModel not found: {} at line {}, column {}\x1b[0m",
+                "Model not found: {} at line {}, column {}",
                 model_name, line_number, column
             )
         }
@@ -115,7 +110,7 @@ pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
             column,
         } => {
             format!(
-                "\x1b[31mField '{}' does not exists on model '{}': at line {}, column {}\x1b[0m",
+                "Field '{}' does not exists on model '{}': at line {}, column {}",
                 field_name, model_name, line_number, column
             )
         }
@@ -126,7 +121,7 @@ pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
             column,
         } => {
             format!(
-                "\x1b[31mVariant '{}' does not exists on enum '{}': at line {}, column {}\x1b[0m",
+                "Variant '{}' does not exists on enum '{}': at line {}, column {}",
                 variant, enum_name, line_number, column
             )
         }
@@ -136,7 +131,7 @@ pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
             column,
         } => {
             format!(
-                "\x1b[31mConversion error: {} at line {}, column {}\x1b[0m",
+                "Conversion error: {} at line {}, column {}",
                 reason, line_number, column
             )
         }
@@ -157,23 +152,23 @@ fn pretty_function_error_message(
     match error {
         FunctionError::InvalidArgument(msg) => {
             format!(
-                "\x1b[31mInvalid argument: {} at line {}, column {}\x1b[0m",
+                "Invalid argument: {} at line {}, column {}",
                 msg, line_number, column,
             )
         }
         FunctionError::MissingArgument => format!(
-            "\x1b[31mMissing argument at line {}, column {}\x1b[0m",
+            "Missing argument at line {}, column {}",
             line_number, column,
         ),
         FunctionError::ExpectsExactlyOneArgument(func) => {
             format!(
-                "\x1b[31m{func} takes exactly one argument, error at line {}, column {}\x1b[0m",
+                "{func} takes exactly one argument, error at line {}, column {}",
                 line_number, column
             )
         }
         FunctionError::UndefinedFunction(func) => {
             format!(
-                "\x1b[31mUndefined function '{func}' called at line {}, column {}\x1b[0m",
+                "Undefined function '{func}' called at line {}, column {}",
                 line_number, column
             )
         }
