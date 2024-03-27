@@ -6,6 +6,7 @@ use rayql::{
 pub fn check_value(
     schema: &Schema,
     property_name: impl Into<String>,
+    property_data_type: &rayql::types::DataType,
     arguments: &Arguments,
     check_type: &str,
     operator: &str,
@@ -13,7 +14,7 @@ pub fn check_value(
     let argument = get_single_argument(check_type, arguments)?;
 
     let value = match argument.value {
-        ArgumentValue::Value(value) => Ok(value.to_sql()),
+        ArgumentValue::Value(value) => get_min_max_wrapped_value(value, property_data_type),
         ArgumentValue::FunctionCall(func) => func.to_sql(schema),
         _ => {
             return Err(ToSQLError::FunctionError {
@@ -35,20 +36,48 @@ pub fn check_value(
     ))
 }
 
+fn get_min_max_wrapped_value(
+    value: rayql::Value,
+    property_data_type: &rayql::types::DataType,
+) -> Result<String, ToSQLError> {
+    match property_data_type {
+        rayql::types::DataType::String => Ok(format!("LENGTH({})", value.to_sql())),
+        rayql::types::DataType::Integer | rayql::types::DataType::Real => Ok(value.to_sql()),
+        rayql::types::DataType::Optional(t) => get_min_max_wrapped_value(value, t),
+        _ => unimplemented!(),
+    }
+}
+
 pub fn min(
     schema: &Schema,
     property_name: impl Into<String>,
+    property_data_type: &rayql::types::DataType,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    check_value(schema, property_name, arguments, "min", ">=")
+    check_value(
+        schema,
+        property_name,
+        property_data_type,
+        arguments,
+        "min",
+        ">=",
+    )
 }
 
 pub fn max(
     schema: &Schema,
     property_name: impl Into<String>,
+    property_data_type: &rayql::types::DataType,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    check_value(schema, property_name, arguments, "max", "<=")
+    check_value(
+        schema,
+        property_name,
+        property_data_type,
+        arguments,
+        "max",
+        "<=",
+    )
 }
 
 pub fn foreign_key(

@@ -157,8 +157,18 @@ impl FunctionCall {
     pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match self.name.as_str() {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
-            "min" => rayql::sql::function::min(schema, &self.property_name, &self.arguments),
-            "max" => rayql::sql::function::max(schema, &self.property_name, &self.arguments),
+            "min" => rayql::sql::function::min(
+                schema,
+                &self.property_name,
+                &self.property_data_type,
+                &self.arguments,
+            ),
+            "max" => rayql::sql::function::max(
+                schema,
+                &self.property_name,
+                &self.property_data_type,
+                &self.arguments,
+            ),
             "references" => rayql::sql::function::references(schema, &self.arguments),
             "default" => rayql::sql::function::default(schema, &self.arguments),
             _ => Err(ToSQLError::FunctionError {

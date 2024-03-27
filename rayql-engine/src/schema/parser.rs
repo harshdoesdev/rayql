@@ -140,6 +140,7 @@ fn parse_field(
                     tokens_iter.next();
                     properties.push(rayql::schema::Property::FunctionCall(parse_function_call(
                         name.clone(),
+                        data_type.clone(),
                         identifier.clone(),
                         tokens_iter,
                     )?));
@@ -184,6 +185,7 @@ fn parse_field(
 
 fn parse_function_call(
     property_name: String,
+    property_data_type: rayql::types::DataType,
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::FunctionCall, ParseError> {
@@ -194,6 +196,7 @@ fn parse_function_call(
             Token::ParenClose => {
                 return Ok(rayql::schema::FunctionCall::new(
                     property_name,
+                    property_data_type,
                     name,
                     arguments,
                     *line_number,
@@ -206,6 +209,7 @@ fn parse_function_call(
                     arguments.push(Argument::new(
                         rayql::schema::ArgumentValue::FunctionCall(parse_function_call(
                             name.clone(),
+                            property_data_type.clone(),
                             identifier.clone(),
                             tokens_iter,
                         )?),
