@@ -13,9 +13,11 @@ pub fn check_value(
 ) -> Result<String, ToSQLError> {
     let argument = get_single_argument(check_type, arguments)?;
 
-    let value = match argument.value {
-        ArgumentValue::Value(value) => get_min_max_wrapped_value(value, property_data_type),
-        ArgumentValue::FunctionCall(func) => func.to_sql(schema),
+    let (value, name) = match argument.value {
+        ArgumentValue::Value(value) => {
+            get_wrapped_prop_name_and_value(value, property_data_type, property_name.into())
+        }
+        ArgumentValue::FunctionCall(func) => Ok((property_name.into(), func.to_sql(schema)?)),
         _ => {
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::InvalidArgument(format!(
@@ -28,24 +30,24 @@ pub fn check_value(
         }
     }?;
 
-    Ok(format!(
-        "CHECK({} {} {})",
-        property_name.into(),
-        operator,
-        value
-    ))
+    Ok(format!("CHECK({} {} {})", name, operator, value))
 }
 
-fn get_min_max_wrapped_value(
+fn get_wrapped_prop_name_and_value(
     value: rayql::Value,
     property_data_type: &rayql::types::DataType,
-) -> Result<String, ToSQLError> {
-    match property_data_type {
-        rayql::types::DataType::String => Ok(format!("LENGTH({})", value.to_sql())),
-        rayql::types::DataType::Integer | rayql::types::DataType::Real => Ok(value.to_sql()),
-        rayql::types::DataType::Optional(t) => get_min_max_wrapped_value(value, t),
+    property_name: String,
+) -> Result<(String, String), ToSQLError> {
+    let name = match property_data_type {
+        rayql::types::DataType::String => format!("LENGTH({})", property_name),
+        rayql::types::DataType::Integer | rayql::types::DataType::Real => property_name,
+        rayql::types::DataType::Optional(t) => {
+            return get_wrapped_prop_name_and_value(value, t, property_name)
+        }
         _ => unimplemented!(),
-    }
+    };
+
+    Ok((name, value.to_sql()))
 }
 
 pub fn min(
