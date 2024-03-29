@@ -38,7 +38,7 @@ pub fn generate_error_message(error: &ParseError, code: &str) -> String {
         ParseError::UnexpectedEndOfTokens => "Unexpected end of tokens".to_string(),
         ParseError::FieldAlreadyExistsOnModel { field, model, line_number, column } => format!(
             "Field '{field}' already exists on model '{model}' at line {}, column {}. Cannot redeclare.",
-            line_number, column, field = field, model = model
+            line_number, column,
         ),
         ParseError::EnumVariantAlreadyExists { r#enum, variant, line_number, column } => format!(
             "Enum variant '{variant}' already exists on enum '{enum}' at line {}, column {}. Cannot redeclare.",
