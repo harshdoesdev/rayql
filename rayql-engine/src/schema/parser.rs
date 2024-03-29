@@ -214,7 +214,7 @@ fn parse_function_call(
     let mut arguments: Vec<rayql::schema::Argument> = vec![];
 
     while let Some((token, line_number, column)) = tokens_iter.next() {
-        match token {
+        let argument = match token {
             Token::ParenClose => {
                 return Ok(rayql::schema::FunctionCall::new(
                     name,
@@ -222,12 +222,12 @@ fn parse_function_call(
                     rayql::schema::FunctionCallContext::new(property_name, property_data_type),
                     *line_number,
                     *column,
-                ))
+                ));
             }
             Token::Identifier(identifier) => {
                 if let Some((Token::ParenOpen, line_number, column)) = tokens_iter.peek() {
                     tokens_iter.next();
-                    arguments.push(Argument::new(
+                    Argument::new(
                         rayql::schema::ArgumentValue::FunctionCall(parse_function_call(
                             name.clone(),
                             property_data_type.clone(),
@@ -236,15 +236,14 @@ fn parse_function_call(
                         )?),
                         *line_number,
                         *column,
-                    ));
-                    continue;
+                    )
+                } else {
+                    Argument::new(
+                        rayql::schema::ArgumentValue::Identifier(identifier.clone()),
+                        *line_number,
+                        *column,
+                    )
                 }
-
-                arguments.push(Argument::new(
-                    rayql::schema::ArgumentValue::Identifier(identifier.clone()),
-                    *line_number,
-                    *column,
-                ));
             }
             Token::Reference(entity, property) => {
                 if property.contains('.') {
@@ -256,7 +255,7 @@ fn parse_function_call(
                     });
                 }
 
-                arguments.push(Argument::new(
+                Argument::new(
                     rayql::schema::ArgumentValue::Reference(rayql::schema::Reference::new(
                         entity.clone(),
                         property.clone(),
@@ -265,30 +264,30 @@ fn parse_function_call(
                     )),
                     *line_number,
                     *column,
-                ));
+                )
             }
-            Token::StringLiteral(s) => arguments.push(Argument::new(
+            Token::StringLiteral(s) => Argument::new(
                 rayql::schema::ArgumentValue::Value(rayql::value::Value::StringLiteral(
                     s.to_string(),
                 )),
                 *line_number,
                 *column,
-            )),
-            Token::Integer(i) => arguments.push(Argument::new(
+            ),
+            Token::Integer(i) => Argument::new(
                 rayql::schema::ArgumentValue::Value(rayql::value::Value::Integer(i.to_owned())),
                 *line_number,
                 *column,
-            )),
-            Token::Real(r) => arguments.push(Argument::new(
+            ),
+            Token::Real(r) => Argument::new(
                 rayql::schema::ArgumentValue::Value(rayql::value::Value::Real(r.to_owned())),
                 *line_number,
                 *column,
-            )),
-            Token::Boolean(b) => arguments.push(Argument::new(
+            ),
+            Token::Boolean(b) => Argument::new(
                 rayql::schema::ArgumentValue::Value(rayql::value::Value::Boolean(b.to_owned())),
                 *line_number,
                 *column,
-            )),
+            ),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
@@ -296,10 +295,33 @@ fn parse_function_call(
                     column: *column,
                 })
             }
-        }
+        };
 
-        if let Some((Token::Comma, _, _)) = tokens_iter.peek() {
-            tokens_iter.next();
+        if let Some((token, line_number, column)) = tokens_iter.peek() {
+            match token {
+                Token::Comma => {
+                    tokens_iter.next();
+                    arguments.push(argument)
+                }
+                Token::ParenClose => {
+                    tokens_iter.next();
+                    arguments.push(argument);
+                    return Ok(rayql::schema::FunctionCall::new(
+                        name,
+                        arguments,
+                        rayql::schema::FunctionCallContext::new(property_name, property_data_type),
+                        *line_number,
+                        *column,
+                    ));
+                }
+                _ => {
+                    return Err(ParseError::UnexpectedToken {
+                        token: token.clone(),
+                        line_number: *line_number,
+                        column: *column,
+                    });
+                }
+            }
         }
     }
 

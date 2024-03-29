@@ -148,7 +148,7 @@ pub fn tokenize_line(
             }
         } else {
             match ch {
-                '\'' => in_string_literal = true,
+                '\'' if buffer.is_empty() => in_string_literal = true,
                 '.' | '_' if !buffer.is_empty() => {
                     buffer.push(ch);
                 }
