@@ -150,6 +150,14 @@ pub fn tokenize_line(
             match ch {
                 '\'' if buffer.is_empty() => in_string_literal = true,
                 '_' if !buffer.is_empty() => {
+                    if !is_valid_identifier(&buffer) {
+                        return Err(TokenizationError::UnexpectedCharacter {
+                            char: ch,
+                            line: line_number,
+                            column,
+                        });
+                    }
+
                     buffer.push(ch);
                 }
                 '.' => match chars.peek() {
