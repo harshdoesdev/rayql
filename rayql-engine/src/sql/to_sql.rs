@@ -160,7 +160,7 @@ impl FunctionCall {
             "min" => rayql::sql::function::min(schema, &self.context, &self.arguments),
             "max" => rayql::sql::function::max(schema, &self.context, &self.arguments),
             "references" => rayql::sql::function::references(schema, &self.arguments),
-            "default" => rayql::sql::function::default(schema, &self.arguments),
+            "default" => rayql::sql::function::default(schema, &self.context, &self.arguments),
             _ => Err(ToSQLError::FunctionError {
                 source: FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,

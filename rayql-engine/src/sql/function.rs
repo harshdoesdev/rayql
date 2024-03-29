@@ -114,11 +114,28 @@ pub fn references(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQ
     Ok(format!("REFERENCES {}", reference))
 }
 
-pub fn default(schema: &Schema, arguments: &Arguments) -> Result<String, ToSQLError> {
+pub fn default(
+    schema: &Schema,
+    context: &rayql::schema::FunctionCallContext,
+    arguments: &Arguments,
+) -> Result<String, ToSQLError> {
     let argument = get_single_argument("default", arguments)?;
 
     let value = match argument.value {
-        ArgumentValue::Value(value) => Ok(value.to_sql()),
+        ArgumentValue::Value(value) => {
+            if value.get_type().ne(&context.property_data_type) {
+                return Err(ToSQLError::FunctionError {
+                    source: FunctionError::InvalidArgument(format!(
+                        "default value must be a value of type '{}', got {}",
+                        &context.property_data_type, value,
+                    )),
+                    line_number: argument.line_number,
+                    column: argument.column,
+                });
+            }
+
+            Ok(value.to_sql())
+        }
         ArgumentValue::FunctionCall(func) => func.to_sql(schema),
         ArgumentValue::Reference(reference) => reference.variant_reference_to_sql(schema),
         _ => {
