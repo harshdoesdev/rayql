@@ -199,8 +199,8 @@ impl Value {
             Value::StringLiteral(s) => format!("'{}'", s),
             Value::Integer(i) => i.to_string(),
             Value::Real(f) => {
-                if *f == 0.0 {
-                    "0.0".to_string()
+                if f.fract().eq(&0.0) {
+                    format!("{:.1}", f)
                 } else {
                     format!("{:.}", f)
                 }

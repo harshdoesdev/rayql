@@ -152,9 +152,11 @@ pub fn tokenize_line(
                 '_' if !buffer.is_empty() => {
                     buffer.push(ch);
                 }
-                '.' if !buffer.is_empty() => match chars.peek() {
+                '.' => match chars.peek() {
                     Some(next_char) => {
-                        if next_char.is_alphanumeric() {
+                        if (!buffer.is_empty() && next_char.is_alphanumeric())
+                            || next_char.is_numeric()
+                        {
                             buffer.push(ch);
                         } else if next_char.is_whitespace() {
                             return Err(TokenizationError::UnexpectedCharacter {
