@@ -16,6 +16,12 @@ pub enum TokenizationError {
     },
     #[error("String literal opened at line {line}, column {column}")]
     StringLiteralOpened { line: usize, column: usize },
+    #[error("Identifier '{identifier}' cannot begin with a digit at line {line}, column {column}")]
+    IdentifierBeginsWithDigit {
+        identifier: String,
+        line: usize,
+        column: usize,
+    },
     #[error("Unexpected End of Input")]
     UnexpectedEndOfInput,
 }

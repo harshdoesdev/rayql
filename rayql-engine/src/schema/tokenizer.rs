@@ -77,10 +77,6 @@ pub fn is_comment(line: &str) -> bool {
     line.trim().starts_with('#')
 }
 
-pub fn is_boolean(token: &str) -> bool {
-    matches!(token, "true" | "false")
-}
-
 pub fn tokenize(input: &str) -> Result<Vec<(Token, usize, usize)>, TokenizationError> {
     let mut tokens = Vec::new();
     for (line_num, line) in input.lines().enumerate() {
@@ -143,7 +139,11 @@ pub fn tokenize_line(
             }
         } else if ch.is_whitespace() {
             if !buffer.is_empty() {
-                tokens.push((get_token(&buffer), line_number, column - buffer.len()));
+                tokens.push((
+                    get_token(&buffer, &line_number, &column)?,
+                    line_number,
+                    column - buffer.len(),
+                ));
                 buffer.clear();
             }
         } else {
@@ -168,7 +168,7 @@ pub fn tokenize_line(
                     }
                 }
                 '?' if !buffer.is_empty() => {
-                    let token = get_token(&buffer);
+                    let token = get_token(&buffer, &line_number, &column)?;
                     tokens.push((
                         Token::Optional(Box::new(token)),
                         line_number,
@@ -179,7 +179,11 @@ pub fn tokenize_line(
                 ch if ch.is_alphanumeric() => buffer.push(ch),
                 _ => {
                     if !buffer.is_empty() {
-                        tokens.push((get_token(&buffer), line_number, column - buffer.len()));
+                        tokens.push((
+                            get_token(&buffer, &line_number, &column)?,
+                            line_number,
+                            column - buffer.len(),
+                        ));
                         buffer.clear();
                     }
 
@@ -213,34 +217,65 @@ pub fn tokenize_line(
     }
 
     if !buffer.is_empty() {
-        tokens.push((get_token(&buffer), line_number, column - buffer.len()));
+        tokens.push((
+            get_token(&buffer, &line_number, &column)?,
+            line_number,
+            column - buffer.len(),
+        ));
     }
 
     Ok(tokens)
 }
 
-pub fn get_token(token_str: &str) -> Token {
+pub fn get_token(
+    token_str: &str,
+    line_number: &usize,
+    column: &usize,
+) -> Result<Token, TokenizationError> {
     if let Some(keyword) = get_keyword(token_str) {
-        return Token::Keyword(keyword);
+        return Ok(Token::Keyword(keyword));
     }
 
-    if is_boolean(token_str) {
-        return Token::Boolean(token_str == "true");
+    if let Ok(boolean) = token_str.parse::<bool>() {
+        return Ok(Token::Boolean(boolean));
     }
 
     if let Ok(integer) = token_str.parse::<i64>() {
-        return Token::Integer(integer);
+        return Ok(Token::Integer(integer));
     }
 
     if let Ok(float) = token_str.parse::<f64>() {
-        return Token::Real(float);
+        return Ok(Token::Real(float));
     }
 
     if let Some((entity, property)) = token_str.split_once('.') {
-        return Token::Reference(entity.to_string(), property.to_string());
+        if !is_valid_identifier(entity) {
+            return Err(TokenizationError::IdentifierBeginsWithDigit {
+                identifier: entity.to_string(),
+                line: *line_number,
+                column: column - token_str.len(),
+            });
+        }
+
+        return Ok(Token::Reference(entity.to_string(), property.to_string()));
     }
 
-    Token::Identifier(token_str.to_string())
+    match is_valid_identifier(token_str) {
+        true => Ok(Token::Identifier(token_str.to_string())),
+        false => Err(TokenizationError::IdentifierBeginsWithDigit {
+            identifier: token_str.to_string(),
+            line: *line_number,
+            column: *column,
+        }),
+    }
+}
+
+fn is_valid_identifier(identifier: &str) -> bool {
+    if identifier.chars().next().unwrap().is_ascii_digit() {
+        return false;
+    }
+
+    true
 }
 
 fn get_escape_char(ch: &char) -> Option<char> {

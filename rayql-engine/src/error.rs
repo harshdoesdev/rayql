@@ -59,6 +59,14 @@ fn generate_tokenization_error_message(
         TokenizationError::StringLiteralOpened { line, column } => {
             format!("String literal opened at line {}, column {}", line, column)
         }
+        TokenizationError::IdentifierBeginsWithDigit {
+            identifier,
+            line,
+            column,
+        } => format!(
+            "Identifier '{identifier}' cannot begin with a digit at line {}, column {}",
+            line, column
+        ),
         TokenizationError::UnexpectedEndOfInput => "Unexpected end of input".to_string(),
     }
 }
