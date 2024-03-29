@@ -140,7 +140,7 @@ pub fn tokenize_line(
         } else if ch.is_whitespace() {
             if !buffer.is_empty() {
                 tokens.push((
-                    get_token(&buffer, &line_number, &column)?,
+                    get_token(&buffer, line_number, column)?,
                     line_number,
                     column - buffer.len(),
                 ));
@@ -167,8 +167,23 @@ pub fn tokenize_line(
                         return Err(TokenizationError::UnexpectedEndOfInput);
                     }
                 }
+                '-' if buffer.ends_with('e') => {
+                    if let Some(next_char) = chars.peek() {
+                        if next_char.is_numeric() {
+                            buffer.push(ch);
+                        } else {
+                            return Err(TokenizationError::UnexpectedCharacter {
+                                char: ch,
+                                line: line_number,
+                                column,
+                            });
+                        }
+                    } else {
+                        return Err(TokenizationError::UnexpectedEndOfInput);
+                    }
+                }
                 '?' if !buffer.is_empty() => {
-                    let token = get_token(&buffer, &line_number, &column)?;
+                    let token = get_token(&buffer, line_number, column)?;
                     tokens.push((
                         Token::Optional(Box::new(token)),
                         line_number,
@@ -180,7 +195,7 @@ pub fn tokenize_line(
                 _ => {
                     if !buffer.is_empty() {
                         tokens.push((
-                            get_token(&buffer, &line_number, &column)?,
+                            get_token(&buffer, line_number, column)?,
                             line_number,
                             column - buffer.len(),
                         ));
@@ -218,7 +233,7 @@ pub fn tokenize_line(
 
     if !buffer.is_empty() {
         tokens.push((
-            get_token(&buffer, &line_number, &column)?,
+            get_token(&buffer, line_number, column)?,
             line_number,
             column - buffer.len(),
         ));
@@ -229,8 +244,8 @@ pub fn tokenize_line(
 
 pub fn get_token(
     token_str: &str,
-    line_number: &usize,
-    column: &usize,
+    line_number: usize,
+    column: usize,
 ) -> Result<Token, TokenizationError> {
     if let Some(keyword) = get_keyword(token_str) {
         return Ok(Token::Keyword(keyword));
@@ -248,25 +263,32 @@ pub fn get_token(
         return Ok(Token::Real(float));
     }
 
+    if let Some((base, exponent)) = token_str.split_once('e') {
+        if let (Ok(base), Ok(exponent)) = (base.parse::<f64>(), exponent.parse::<i32>()) {
+            return Ok(Token::Real(base * 10f64.powi(exponent)));
+        }
+    }
+
     if let Some((entity, property)) = token_str.split_once('.') {
         if !is_valid_identifier(entity) {
             return Err(TokenizationError::IdentifierBeginsWithDigit {
                 identifier: entity.to_string(),
-                line: *line_number,
-                column: column - token_str.len(),
+                line: line_number,
+                column,
             });
         }
 
         return Ok(Token::Reference(entity.to_string(), property.to_string()));
     }
 
-    match is_valid_identifier(token_str) {
-        true => Ok(Token::Identifier(token_str.to_string())),
-        false => Err(TokenizationError::IdentifierBeginsWithDigit {
+    if is_valid_identifier(token_str) {
+        Ok(Token::Identifier(token_str.to_string()))
+    } else {
+        Err(TokenizationError::IdentifierBeginsWithDigit {
             identifier: token_str.to_string(),
-            line: *line_number,
-            column: *column,
-        }),
+            line: line_number,
+            column,
+        })
     }
 }
 
