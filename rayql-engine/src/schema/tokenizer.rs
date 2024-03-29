@@ -149,9 +149,29 @@ pub fn tokenize_line(
         } else {
             match ch {
                 '\'' if buffer.is_empty() => in_string_literal = true,
-                '.' | '_' if !buffer.is_empty() => {
+                '_' if !buffer.is_empty() => {
                     buffer.push(ch);
                 }
+                '.' if !buffer.is_empty() => match chars.peek() {
+                    Some(next_char) => {
+                        if next_char.is_alphanumeric() {
+                            buffer.push(ch);
+                        } else if next_char.is_whitespace() {
+                            return Err(TokenizationError::UnexpectedCharacter {
+                                char: ch,
+                                line: line_number,
+                                column,
+                            });
+                        } else {
+                            return Err(TokenizationError::UnexpectedCharacter {
+                                char: *next_char,
+                                line: line_number,
+                                column: column + 1,
+                            });
+                        }
+                    }
+                    None => return Err(TokenizationError::UnexpectedEndOfInput),
+                },
                 '-' if buffer.is_empty() => {
                     if let Some(next_char) = chars.peek() {
                         if next_char.is_numeric() || next_char.eq(&'.') {
