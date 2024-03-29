@@ -36,6 +36,20 @@ pub enum ParseError {
         line_number: usize,
         column: usize,
     },
+    #[error("Field with name '{field}' already exists on model '{model}'")]
+    FieldAlreadyExistsOnModel {
+        field: String,
+        model: String,
+        line_number: usize,
+        column: usize,
+    },
+    #[error("Variant '{variant}' already exists on enum '{r#enum}'")]
+    EnumVariantAlreadyExists {
+        variant: String,
+        r#enum: String,
+        line_number: usize,
+        column: usize,
+    },
     #[error("Invalid reference, cannot access '{entity}' of '{property}'")]
     InvalidReference {
         entity: String,

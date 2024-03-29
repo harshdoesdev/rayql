@@ -5,8 +5,7 @@ use rayql::{
 
 pub fn check_value(
     schema: &Schema,
-    property_name: impl Into<String>,
-    property_data_type: &rayql::types::DataType,
+    context: &rayql::schema::FunctionCallContext,
     arguments: &Arguments,
     check_type: &str,
     operator: &str,
@@ -15,9 +14,28 @@ pub fn check_value(
 
     let (value, name) = match argument.value {
         ArgumentValue::Value(value) => {
-            get_wrapped_prop_name_and_value(value, property_data_type, property_name.into())
+            let name = match context.property_data_type {
+                rayql::types::DataType::String => format!("LENGTH({})", context.property_name),
+                rayql::types::DataType::Integer | rayql::types::DataType::Real => {
+                    context.property_name.clone()
+                }
+                _ => {
+                    return Err(ToSQLError::FunctionError {
+                        source: FunctionError::InvalidArgument(format!(
+                            "{} value must be a value, got {:?}",
+                            check_type, value
+                        )),
+                        line_number: argument.line_number,
+                        column: argument.column,
+                    })
+                }
+            };
+
+            Ok((name, value.to_sql()))
         }
-        ArgumentValue::FunctionCall(func) => Ok((property_name.into(), func.to_sql(schema)?)),
+        ArgumentValue::FunctionCall(func) => {
+            Ok((context.property_name.clone(), func.to_sql(schema)?))
+        }
         _ => {
             return Err(ToSQLError::FunctionError {
                 source: FunctionError::InvalidArgument(format!(
@@ -33,53 +51,20 @@ pub fn check_value(
     Ok(format!("CHECK({} {} {})", name, operator, value))
 }
 
-fn get_wrapped_prop_name_and_value(
-    value: rayql::Value,
-    property_data_type: &rayql::types::DataType,
-    property_name: String,
-) -> Result<(String, String), ToSQLError> {
-    let name = match property_data_type {
-        rayql::types::DataType::String => format!("LENGTH({})", property_name),
-        rayql::types::DataType::Integer | rayql::types::DataType::Real => property_name,
-        rayql::types::DataType::Optional(t) => {
-            return get_wrapped_prop_name_and_value(value, t, property_name)
-        }
-        _ => unimplemented!(),
-    };
-
-    Ok((name, value.to_sql()))
-}
-
 pub fn min(
     schema: &Schema,
-    property_name: impl Into<String>,
-    property_data_type: &rayql::types::DataType,
+    context: &rayql::schema::FunctionCallContext,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    check_value(
-        schema,
-        property_name,
-        property_data_type,
-        arguments,
-        "min",
-        ">=",
-    )
+    check_value(schema, context, arguments, "min", ">=")
 }
 
 pub fn max(
     schema: &Schema,
-    property_name: impl Into<String>,
-    property_data_type: &rayql::types::DataType,
+    context: &rayql::schema::FunctionCallContext,
     arguments: &Arguments,
 ) -> Result<String, ToSQLError> {
-    check_value(
-        schema,
-        property_name,
-        property_data_type,
-        arguments,
-        "max",
-        "<=",
-    )
+    check_value(schema, context, arguments, "max", "<=")
 }
 
 pub fn foreign_key(

@@ -42,6 +42,7 @@ fn parse_enum(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Enum, ParseError> {
     let mut variants = vec![];
+    let mut existing_variants = std::collections::HashSet::new();
 
     for (token, line_number, column) in tokens_iter.by_ref() {
         match token {
@@ -53,11 +54,22 @@ fn parse_enum(
                     *column,
                 ))
             }
-            Token::Identifier(variant) => variants.push(rayql::schema::EnumVariant::new(
-                variant.clone(),
-                *line_number,
-                *column,
-            )),
+            Token::Identifier(variant) => {
+                if !existing_variants.insert(variant) {
+                    return Err(ParseError::EnumVariantAlreadyExists {
+                        variant: variant.clone(),
+                        r#enum: enum_name,
+                        line_number: *line_number,
+                        column: *column,
+                    });
+                }
+
+                variants.push(rayql::schema::EnumVariant::new(
+                    variant.clone(),
+                    *line_number,
+                    *column,
+                ))
+            }
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
@@ -76,6 +88,7 @@ fn parse_model(
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Model, ParseError> {
     let mut fields = vec![];
+    let mut field_names = std::collections::HashSet::new();
 
     while let Some((token, line_number, column)) = tokens_iter.next() {
         match token {
@@ -89,6 +102,15 @@ fn parse_model(
             }
             Token::Identifier(identifier) => match tokens_iter.next() {
                 Some((Token::Colon, _, _)) => {
+                    if !field_names.insert(identifier) {
+                        return Err(ParseError::FieldAlreadyExistsOnModel {
+                            field: identifier.clone(),
+                            model: model_name,
+                            line_number: *line_number,
+                            column: *column,
+                        });
+                    }
+
                     let field = parse_field(identifier.clone(), tokens_iter)?;
                     fields.push(field);
                 }
@@ -195,10 +217,9 @@ fn parse_function_call(
         match token {
             Token::ParenClose => {
                 return Ok(rayql::schema::FunctionCall::new(
-                    property_name,
-                    property_data_type,
                     name,
                     arguments,
+                    rayql::schema::FunctionCallContext::new(property_name, property_data_type),
                     *line_number,
                     *column,
                 ))

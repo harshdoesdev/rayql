@@ -84,30 +84,40 @@ impl Reference {
 pub struct FunctionCall {
     pub name: String,
     pub arguments: Arguments,
-    pub property_name: String,
-    pub property_data_type: rayql::types::DataType,
+    pub context: FunctionCallContext,
     pub line_number: usize,
     pub column: usize,
 }
 
-// Todo: Move property_name and property_data_type to ctx
-
 impl FunctionCall {
     pub fn new(
-        property_name: String,
-        property_data_type: rayql::types::DataType,
         name: String,
         arguments: Vec<Argument>,
+        context: FunctionCallContext,
         line_number: usize,
         column: usize,
     ) -> Self {
         FunctionCall {
             name,
             arguments: Arguments::from_vec(arguments, line_number, column),
-            property_name,
-            property_data_type,
+            context,
             line_number,
             column,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct FunctionCallContext {
+    pub property_name: String,
+    pub property_data_type: rayql::types::DataType,
+}
+
+impl FunctionCallContext {
+    pub fn new(property_name: String, property_data_type: rayql::types::DataType) -> Self {
+        FunctionCallContext {
+            property_name,
+            property_data_type,
         }
     }
 }

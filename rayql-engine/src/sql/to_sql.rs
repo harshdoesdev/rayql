@@ -45,14 +45,14 @@ impl Schema {
                     match prop {
                         Property::FunctionCall(FunctionCall {
                             name,
-                            property_name,
+                            context,
                             arguments,
                             ..
                         }) if name.eq("foreign_key") => {
                             fk_sql.push(rayql::sql::function::foreign_key(
                                 self,
                                 arguments,
-                                property_name.to_string(),
+                                context.property_name.clone(),
                             )?);
                         }
                         _ => field_sql.push_str(&format!(" {}", prop.to_sql(self)?)),
@@ -157,18 +157,8 @@ impl FunctionCall {
     pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match self.name.as_str() {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
-            "min" => rayql::sql::function::min(
-                schema,
-                &self.property_name,
-                &self.property_data_type,
-                &self.arguments,
-            ),
-            "max" => rayql::sql::function::max(
-                schema,
-                &self.property_name,
-                &self.property_data_type,
-                &self.arguments,
-            ),
+            "min" => rayql::sql::function::min(schema, &self.context, &self.arguments),
+            "max" => rayql::sql::function::max(schema, &self.context, &self.arguments),
             "references" => rayql::sql::function::references(schema, &self.arguments),
             "default" => rayql::sql::function::default(schema, &self.arguments),
             _ => Err(ToSQLError::FunctionError {
