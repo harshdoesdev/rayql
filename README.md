@@ -9,6 +9,10 @@
     <br />
 </p>
 
+## Online Editor
+
+You can try RayQL using the [Online RayQL editor](https://harshdoesdev.github.io/rayql-studio/)."
+
 ## Schema Definition
 
 You can define your database schema by creating a RayQL file called `schema.rayql`.
