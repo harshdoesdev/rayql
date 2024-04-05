@@ -9,6 +9,10 @@
     <br />
 </p>
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/harshdoesdev/rayql/.github%2Fworkflows%2Frust.yml)
+![GitHub License](https://img.shields.io/github/license/harshdoesdev/rayql)
+![Discord](https://img.shields.io/discord/1225854949485711451)
+
 ## Online Editor
 
 You can try RayQL using the [Online RayQL editor](https://harshdoesdev.github.io/rayql-studio/).
