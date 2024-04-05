@@ -111,11 +111,8 @@ pub fn tokenize_line(
 
         if in_string_literal {
             if is_escaped {
-                match get_escape_char(&ch) {
-                    Some(escape_ch) => {
-                        buffer.push(escape_ch);
-                        is_escaped = false;
-                    }
+                let escape_ch = match get_escape_char(&ch) {
+                    Some(escape_ch) => escape_ch,
                     None => {
                         return Err(TokenizationError::UnknownEscapeSequence {
                             char: ch,
@@ -123,7 +120,10 @@ pub fn tokenize_line(
                             column,
                         })
                     }
-                }
+                };
+
+                buffer.push(escape_ch);
+                is_escaped = false;
             } else if ch == '\\' {
                 is_escaped = true;
             } else if ch == '\'' {
