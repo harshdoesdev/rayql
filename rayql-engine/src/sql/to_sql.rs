@@ -49,11 +49,8 @@ impl Schema {
                             arguments,
                             ..
                         }) if name.eq("foreign_key") => {
-                            fk_sql.push(rayql::sql::function::foreign_key(
-                                self,
-                                arguments,
-                                context.property_name.clone(),
-                            )?);
+                            fk_sql
+                                .push(rayql::sql::function::foreign_key(self, arguments, context)?);
                         }
                         _ => field_sql.push_str(&format!(" {}", prop.to_sql(self)?)),
                     }
@@ -159,8 +156,10 @@ impl FunctionCall {
             "now" => Ok("CURRENT_TIMESTAMP".to_string()),
             "min" => rayql::sql::function::min(schema, &self.context, &self.arguments),
             "max" => rayql::sql::function::max(schema, &self.context, &self.arguments),
-            "references" => rayql::sql::function::references(schema, &self.arguments),
-            "default" => rayql::sql::function::default(schema, &self.context, &self.arguments),
+            "references" => {
+                rayql::sql::function::references(schema, &self.arguments, &self.context)
+            }
+            "default" => rayql::sql::function::default(schema, &self.arguments, &self.context),
             _ => Err(ToSQLError::FunctionError {
                 source: FunctionError::UndefinedFunction(self.name.clone()),
                 line_number: self.line_number,
