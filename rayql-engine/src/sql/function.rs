@@ -5,9 +5,9 @@ use rayql::{
 
 use rayql::sql::fn_helpers::{check_value, get_single_argument};
 
-check_value_fn!(min, ">=");
+check_value_fn!(min, "<=");
 
-check_value_fn!(max, "<=");
+check_value_fn!(max, ">=");
 
 single_arg_fn!(foreign_key(schema, argument, context) {
     let reference = argument_matches!(
