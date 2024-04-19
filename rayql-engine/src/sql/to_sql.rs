@@ -154,6 +154,8 @@ impl EnumVariant {
     }
 }
 
+// TODO: throw exception if an argument is passed
+// to a function which does not accepts any arguments
 impl FunctionCall {
     pub fn to_sql(&self, schema: &Schema) -> Result<String, ToSQLError> {
         match self.name.as_str() {
