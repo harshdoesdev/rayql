@@ -17,9 +17,13 @@ impl Schema {
             let mut fk_sql = Vec::new();
 
             for field in &model.fields {
-                let mut field_sql = format!("    {} {}", field.name, field.data_type.to_sql(true));
+                let mut field_sql = format!(
+                    "    {} {}",
+                    field.name,
+                    field.data_type.data_type.to_sql(true)
+                );
 
-                if let DataType::Enum(enum_name) = &field.data_type {
+                if let DataType::Enum(enum_name) = &field.data_type.data_type {
                     let variants: Vec<String> = match self.get_enum(enum_name) {
                         Some(e) => e
                             .variants
@@ -29,8 +33,8 @@ impl Schema {
                         None => {
                             return Err(ToSQLError::EnumNotFound {
                                 enum_name: enum_name.clone(),
-                                line_number: field.line_number,
-                                column: field.column,
+                                line_number: field.data_type.line_number,
+                                column: field.data_type.column,
                             })
                         }
                     };
@@ -119,7 +123,7 @@ impl Model {
                 field_name: field_name.to_string(),
                 model_name: self.name.to_string(),
                 line_number,
-                column: column + field_name.len() + 1,
+                column: column + field_name.len(),
             }),
         }
     }
@@ -138,7 +142,7 @@ impl Enum {
                 variant: variant.to_string(),
                 enum_name: self.name.to_string(),
                 line_number,
-                column: column + variant.len() + 1,
+                column: column + variant.len(),
             }),
         }
     }

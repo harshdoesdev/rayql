@@ -39,6 +39,27 @@ impl std::fmt::Display for Token {
     }
 }
 
+impl Token {
+    pub fn len(&self) -> usize {
+        match self {
+            Token::Identifier(s) => s.len(),
+            Token::Reference(e, p) => e.len() + p.len() + 1, // +1 for the dot
+            Token::StringLiteral(s) => s.len(),
+            Token::Integer(i) => i.to_string().len(),
+            Token::Real(r) => r.to_string().len(),
+            Token::Boolean(b) => b.to_string().len(),
+            Token::Keyword(kw) => format!("{:?}", kw).len(),
+            Token::ParenOpen => 1,
+            Token::ParenClose => 1,
+            Token::BraceOpen => 1,
+            Token::BraceClose => 1,
+            Token::Colon => 1,
+            Token::Comma => 1,
+            Token::Optional(token) => token.len() + 9, // +9 for "Optional " prefix
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Keyword {
     Model,
@@ -176,7 +197,7 @@ pub fn tokenize_line(
                             return Err(TokenizationError::UnexpectedCharacter {
                                 char: *next_char,
                                 line: line_number,
-                                column: column + 1,
+                                column,
                             });
                         }
                     }

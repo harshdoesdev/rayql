@@ -78,7 +78,7 @@ pub(crate) fn check_value(
 
     let (value, name) = match argument.value {
         ArgumentValue::Value(value) => {
-            let name = match context.property_data_type {
+            let name = match context.property_data_type.data_type {
                 rayql::types::DataType::String => format!("LENGTH({})", context.property_name),
                 rayql::types::DataType::Integer | rayql::types::DataType::Real => {
                     context.property_name.clone()

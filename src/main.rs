@@ -33,10 +33,7 @@ pub fn print_schema() {
     let schema = match rayql_engine::Schema::parse(&code) {
         Ok(schema) => schema,
         Err(err) => {
-            eprintln!(
-                "{}",
-                rayql_engine::error::generate_error_message(&err, &code)
-            );
+            eprintln!("{}", rayql_engine::error::pretty_error_message(&err, &code));
             std::process::exit(1);
         }
     };

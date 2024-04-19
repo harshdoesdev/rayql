@@ -33,7 +33,7 @@ single_arg_fn!(references(schema, argument, _context) {
 single_arg_fn!(default(schema, argument, context) {
     let value = argument_matches!(
         argument,
-        ArgumentValue::Value(value) if value.get_type().eq(&context.property_data_type) => {
+        ArgumentValue::Value(value) if value.get_type().eq(&context.property_data_type.data_type) => {
             Ok(value.to_sql())
         },
         ArgumentValue::FunctionCall(func) => func.to_sql(schema),

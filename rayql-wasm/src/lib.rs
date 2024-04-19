@@ -6,7 +6,7 @@ pub fn to_sql(schema_src: &str) -> Result<JsValue, JsValue> {
         Ok(schema) => schema,
         Err(error) => {
             return Err(JsValue::from_str(
-                &rayql_engine::error::generate_error_message(&error, schema_src),
+                &rayql_engine::error::pretty_error_message(&error, schema_src),
             ))
         }
     };

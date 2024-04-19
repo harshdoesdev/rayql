@@ -1,8 +1,8 @@
 use rayql::schema::{
     error::ParseError,
     tokenizer::{tokenize, Keyword, Token},
-    utils::{get_data_type, get_model_or_enum_name},
-    Argument, Schema,
+    utils::{get_data_type_with_span, get_model_or_enum_name},
+    Argument, DataTypeWithSpan, Schema,
 };
 
 pub fn parse(input: &str) -> Result<Schema, ParseError> {
@@ -140,7 +140,7 @@ fn parse_field(
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::Field, ParseError> {
-    let data_type = get_data_type(tokens_iter.next())?;
+    let data_type = get_data_type_with_span(tokens_iter.next())?;
 
     let mut properties = vec![];
 
@@ -205,9 +205,11 @@ fn parse_field(
     Err(ParseError::UnexpectedEndOfTokens)
 }
 
+// TODO: fix function call column span and argument column span
+
 fn parse_function_call(
     property_name: String,
-    property_data_type: rayql::types::DataType,
+    property_data_type: DataTypeWithSpan,
     name: String,
     tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
 ) -> Result<rayql::schema::FunctionCall, ParseError> {

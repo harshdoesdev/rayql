@@ -7,6 +7,24 @@ pub mod error;
 pub use parser::parse;
 
 #[derive(Debug, PartialEq, Clone)]
+
+pub struct DataTypeWithSpan {
+    pub data_type: rayql::types::DataType,
+    pub line_number: usize,
+    pub column: usize,
+}
+
+impl DataTypeWithSpan {
+    fn new(data_type: rayql::types::DataType, line_number: usize, column: usize) -> Self {
+        DataTypeWithSpan {
+            data_type,
+            line_number,
+            column,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Enum {
     pub name: String,
     pub variants: Vec<EnumVariant>,
@@ -110,11 +128,11 @@ impl FunctionCall {
 #[derive(Debug, PartialEq, Clone)]
 pub struct FunctionCallContext {
     pub property_name: String,
-    pub property_data_type: rayql::types::DataType,
+    pub property_data_type: DataTypeWithSpan,
 }
 
 impl FunctionCallContext {
-    pub fn new(property_name: String, property_data_type: rayql::types::DataType) -> Self {
+    pub fn new(property_name: String, property_data_type: DataTypeWithSpan) -> Self {
         FunctionCallContext {
             property_name,
             property_data_type,
@@ -171,7 +189,7 @@ pub enum ArgumentValue {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Field {
     pub name: String,
-    pub data_type: rayql::types::DataType,
+    pub data_type: DataTypeWithSpan,
     pub properties: Vec<Property>,
     pub line_number: usize,
     pub column: usize,
@@ -180,7 +198,7 @@ pub struct Field {
 impl Field {
     pub fn new(
         name: String,
-        data_type: rayql::types::DataType,
+        data_type: DataTypeWithSpan,
         properties: Vec<Property>,
         line_number: usize,
         column: usize,

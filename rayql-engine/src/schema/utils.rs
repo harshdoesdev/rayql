@@ -1,11 +1,12 @@
 use rayql::schema::{
     error::ParseError,
     tokenizer::{Keyword, Token},
+    DataTypeWithSpan,
 };
 
-pub(crate) fn get_data_type(
+pub(crate) fn get_data_type_with_span(
     input: Option<&(Token, usize, usize)>,
-) -> Result<rayql::types::DataType, ParseError> {
+) -> Result<DataTypeWithSpan, ParseError> {
     if let Some((token, line_number, column)) = input {
         let data_type = match token {
             Token::Keyword(keyword) => match keyword {
@@ -17,9 +18,11 @@ pub(crate) fn get_data_type(
                 Keyword::Timestamp => rayql::types::DataType::Timestamp,
                 _ => unimplemented!("Unexpected data type"),
             },
-            Token::Optional(token) => rayql::types::DataType::Optional(Box::new(get_data_type(
-                Some(&(*token.clone(), *line_number, *column)),
-            )?)),
+            Token::Optional(token) => {
+                let inner_data_type =
+                    get_data_type_with_span(Some(&(*token.clone(), *line_number, *column)))?;
+                rayql::types::DataType::Optional(Box::new(inner_data_type.data_type))
+            }
             Token::Identifier(identifier) => rayql::types::DataType::Enum(identifier.clone()),
             _ => {
                 return Err(ParseError::UnexpectedToken {
@@ -30,7 +33,9 @@ pub(crate) fn get_data_type(
             }
         };
 
-        return Ok(data_type);
+        let data_type_with_span = DataTypeWithSpan::new(data_type, *line_number, *column);
+
+        return Ok(data_type_with_span);
     }
 
     Err(ParseError::UnexpectedEndOfTokens)
