@@ -13,6 +13,8 @@
 ![GitHub License](https://img.shields.io/github/license/harshdoesdev/rayql)
 ![Discord](https://img.shields.io/discord/1225854949485711451)
 
+[Join our Discord Channel](https://discord.gg/4re5ShTshg)
+
 ## Online Editor
 
 You can try RayQL using the [Online RayQL editor](https://harshdoesdev.github.io/rayql-studio/).
