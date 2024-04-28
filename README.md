@@ -83,3 +83,13 @@ CREATE TABLE IF NOT EXISTS post (
     FOREIGN KEY (author_id) REFERENCES user(id)
 );
 ```
+
+## Todo
+
+- [x] Basic Schema Parser
+- [x] `rayql print` command
+- [ ] Database commands
+    - [ ] `rayql db push` and `rayql db pull` commands
+    - [ ] `rayql db migrate` command
+- [ ] Typescript Types generator
+- [ ] Query Parser and Handler
