@@ -1,61 +1,7 @@
-use annotate_snippets::{Level, Renderer, Snippet};
 use rayql::{
     schema::error::{ParseError, TokenizationError},
     sql::error::{FunctionError, ToSQLError},
 };
-
-struct ErrorMessageBuilder<'a> {
-    code: &'a str,
-    title: String,
-    label: String,
-    line: usize,
-    span: std::ops::Range<usize>,
-}
-
-impl<'a> ErrorMessageBuilder<'a> {
-    fn new(code: &'a str) -> Self {
-        ErrorMessageBuilder {
-            code,
-            title: String::new(),
-            label: String::new(),
-            line: 0,
-            span: 0..0,
-        }
-    }
-
-    fn with_title(mut self, title: String) -> Self {
-        self.title = title;
-        self
-    }
-
-    fn with_label(mut self, label: String) -> Self {
-        self.label = label;
-        self
-    }
-
-    fn with_line(mut self, line: usize) -> Self {
-        self.line = line;
-        self
-    }
-
-    fn with_span(mut self, span: std::ops::Range<usize>) -> Self {
-        self.span = span;
-        self
-    }
-
-    fn build(self) -> String {
-        let message = Level::Error.title(&self.title).snippet(
-            Snippet::source(self.code.lines().nth(self.line - 1).unwrap())
-                .line_start(self.line)
-                .origin("schema.rayql")
-                .fold(true)
-                .annotation(Level::Error.span(self.span).label(&self.label)),
-        );
-        let renderer = Renderer::styled();
-        let rendered_message = renderer.render(message);
-        rendered_message.to_string()
-    }
-}
 
 pub fn pretty_error_message(error: &ParseError, code: &str) -> String {
     match error {
@@ -99,16 +45,17 @@ pub fn pretty_error_message(error: &ParseError, code: &str) -> String {
     }
 }
 
-fn pretty_tokenization_error_message(tokenization_error: &TokenizationError, code: &str) -> String {
+fn pretty_tokenization_error_message(
+    tokenization_error: &TokenizationError,
+    _code: &str,
+) -> String {
     match tokenization_error {
         TokenizationError::UnexpectedCharacter { char, line, column }
         | TokenizationError::UnknownEscapeSequence { char, line, column } => {
-            ErrorMessageBuilder::new(code)
-                .with_title("Unexpected character".to_string())
-                .with_label(format!("Unexpected character '{}'", char))
-                .with_line(*line)
-                .with_span(*column - 1..*column)
-                .build()
+            format!(
+                "Unexpected character '{}' at line {}, column {}",
+                char, line, column
+            )
         }
         TokenizationError::StringLiteralOpened { line, column } => {
             format!("String literal opened at line {}, column {}", line, column)

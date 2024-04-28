@@ -16,7 +16,6 @@ resolver = "2"
 thiserror = "1.0"
 rayql-engine = { path = "rayql-engine" }
 wasm-bindgen = "0.2"
-annotate-snippets = "0.11.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.36.0", features = ["full"] }
