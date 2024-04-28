@@ -17,6 +17,14 @@
 
 You can try RayQL using the [Online RayQL editor](https://harshdoesdev.github.io/rayql-studio/).
 
+## Installation
+
+You can install RayQL by running the following command in your terminal:
+
+```bash
+curl -s https://raw.githubusercontent.com/harshdoesdev/rayql/main/install.sh | sh
+```
+
 ## Schema Definition
 
 You can define your database schema by creating a RayQL file called `schema.rayql`.
