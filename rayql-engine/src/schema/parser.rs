@@ -2,8 +2,10 @@ use rayql::schema::{
     error::ParseError,
     tokenizer::{tokenize, Keyword, Token},
     utils::{get_data_type_with_span, get_model_or_enum_name},
-    Argument, DataTypeWithSpan, Schema,
+    Argument, Schema,
 };
+
+type PeekableTokensIter<'a> = std::iter::Peekable<std::slice::Iter<'a, (Token, usize, usize)>>;
 
 pub fn parse(input: &str) -> Result<Schema, ParseError> {
     let tokens = tokenize(input)?;
@@ -39,7 +41,7 @@ pub fn parse(input: &str) -> Result<Schema, ParseError> {
 
 fn parse_enum(
     enum_name: String,
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
+    tokens_iter: &mut PeekableTokensIter,
 ) -> Result<rayql::schema::Enum, ParseError> {
     let mut variants = vec![];
     let mut existing_variants = std::collections::HashSet::new();
@@ -85,7 +87,7 @@ fn parse_enum(
 
 fn parse_model(
     model_name: String,
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
+    tokens_iter: &mut PeekableTokensIter,
 ) -> Result<rayql::schema::Model, ParseError> {
     let mut fields = vec![];
     let mut field_names = std::collections::HashSet::new();
@@ -138,7 +140,7 @@ fn parse_model(
 
 fn parse_field(
     name: String,
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
+    tokens_iter: &mut PeekableTokensIter,
 ) -> Result<rayql::schema::Field, ParseError> {
     let data_type = get_data_type_with_span(tokens_iter.next())?;
 
@@ -161,10 +163,11 @@ fn parse_field(
                 if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
                     tokens_iter.next();
                     properties.push(rayql::schema::Property::FunctionCall(parse_function_call(
-                        name.clone(),
-                        data_type.clone(),
                         identifier.clone(),
+                        rayql::schema::FunctionCallContext::new(name.clone(), data_type.clone()),
                         tokens_iter,
+                        *line_number,
+                        *column,
                     )?));
                     continue;
                 }
@@ -205,13 +208,12 @@ fn parse_field(
     Err(ParseError::UnexpectedEndOfTokens)
 }
 
-// TODO: fix function call column span and argument column span
-
 fn parse_function_call(
-    property_name: String,
-    property_data_type: DataTypeWithSpan,
     name: String,
-    tokens_iter: &mut std::iter::Peekable<std::slice::Iter<(Token, usize, usize)>>,
+    context: rayql::schema::FunctionCallContext,
+    tokens_iter: &mut PeekableTokensIter,
+    fn_call_line: usize,
+    fn_call_column: usize,
 ) -> Result<rayql::schema::FunctionCall, ParseError> {
     let mut arguments: Vec<rayql::schema::Argument> = vec![];
 
@@ -221,20 +223,24 @@ fn parse_function_call(
                 return Ok(rayql::schema::FunctionCall::new(
                     name,
                     arguments,
-                    rayql::schema::FunctionCallContext::new(property_name, property_data_type),
-                    *line_number,
-                    *column,
+                    context,
+                    fn_call_line,
+                    fn_call_column,
                 ));
             }
             Token::Identifier(identifier) => {
-                if let Some((Token::ParenOpen, line_number, column)) = tokens_iter.peek() {
+                if let Some((Token::ParenOpen, _, _)) = tokens_iter.peek() {
                     tokens_iter.next();
                     Argument::new(
                         rayql::schema::ArgumentValue::FunctionCall(parse_function_call(
-                            name.clone(),
-                            property_data_type.clone(),
                             identifier.clone(),
+                            rayql::schema::FunctionCallContext::new(
+                                name.clone(),
+                                context.property_data_type.clone(),
+                            ),
                             tokens_iter,
+                            *line_number,
+                            column - identifier.len(),
                         )?),
                         *line_number,
                         *column,
@@ -311,9 +317,9 @@ fn parse_function_call(
                     return Ok(rayql::schema::FunctionCall::new(
                         name,
                         arguments,
-                        rayql::schema::FunctionCallContext::new(property_name, property_data_type),
-                        *line_number,
-                        *column,
+                        context,
+                        fn_call_line,
+                        fn_call_column,
                     ));
                 }
                 _ => {

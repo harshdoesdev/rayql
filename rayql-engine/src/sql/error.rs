@@ -144,7 +144,7 @@ impl std::fmt::Display for FunctionError {
                 write!(f, "Invalid argument: {}", msg)
             }
             FunctionError::MissingArgument => {
-                write!(f, "Missing argument")
+                write!(f, "Missing argument to function")
             }
             FunctionError::ExpectsExactlyOneArgument(func) => {
                 write!(f, "{func} exactly one argument")

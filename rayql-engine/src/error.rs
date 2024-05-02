@@ -158,7 +158,7 @@ fn pretty_function_error_message(
             )
         }
         FunctionError::MissingArgument => format!(
-            "Missing argument at line {}, column {}",
+            "Missing argument to function at line {}, column {}",
             line_number, column,
         ),
         FunctionError::ExpectsExactlyOneArgument(func) => {
