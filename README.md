@@ -1,7 +1,7 @@
 # RayQL
 
 <p align="center">
-    <img src="./banner.png" alt="RayQL Logo">
+    <img src="./rayql-logo.svg" alt="RayQL Logo">
     <br />
     <br />
     <b>RayQL is a schema definition and query language for SQLite.</b>
