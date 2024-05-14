@@ -1,10 +1,7 @@
 # RayQL
 
 <p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./rayql-logo-dark.svg">
-        <img alt="RayQL Logo" src="./rayql-logo.svg">
-    </picture>
+    <img alt="RayQL Logo" src="./rayql-logo.svg">
     <br />
     <br />
     <b>RayQL is a schema definition and query language for SQLite.</b>
