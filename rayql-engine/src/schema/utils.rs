@@ -5,7 +5,7 @@ use rayql::schema::{
 };
 
 pub(crate) fn get_data_type_with_span(
-    input: Option<&(Token, usize, usize)>,
+    input: Option<(&Token, usize, usize)>,
 ) -> Result<DataTypeWithSpan, ParseError> {
     if let Some((token, line_number, column)) = input {
         let data_type = match token {
@@ -19,21 +19,20 @@ pub(crate) fn get_data_type_with_span(
                 _ => unimplemented!("Unexpected data type"),
             },
             Token::Optional(token) => {
-                let inner_data_type =
-                    get_data_type_with_span(Some(&(*token.clone(), *line_number, *column)))?;
+                let inner_data_type = get_data_type_with_span(Some((token, line_number, column)))?;
                 rayql::types::DataType::Optional(Box::new(inner_data_type.data_type))
             }
             Token::Identifier(identifier) => rayql::types::DataType::Enum(identifier.clone()),
             _ => {
                 return Err(ParseError::UnexpectedToken {
                     token: token.clone(),
-                    line_number: *line_number,
-                    column: *column,
+                    line_number,
+                    column,
                 })
             }
         };
 
-        let data_type_with_span = DataTypeWithSpan::new(data_type, *line_number, *column);
+        let data_type_with_span = DataTypeWithSpan::new(data_type, line_number, column);
 
         return Ok(data_type_with_span);
     }
