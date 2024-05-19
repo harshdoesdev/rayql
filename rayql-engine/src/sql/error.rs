@@ -7,6 +7,13 @@ pub enum ToSQLError {
         line_number: usize,
         column: usize,
     },
+    IncorrectReference {
+        entity_name: String,
+        variant_name: String,
+        given_entity_name: String,
+        line_number: usize,
+        column: usize,
+    },
     EnumNotFound {
         enum_name: String,
         line_number: usize,
@@ -53,6 +60,19 @@ impl fmt::Display for ToSQLError {
                     f,
                     "Unknown reference: {} at line {line_number}, column {column}",
                     entity_name
+                )
+            }
+            ToSQLError::IncorrectReference {
+                entity_name,
+                variant_name,
+                given_entity_name,
+                line_number,
+                column,
+            } => {
+                write!(
+                    f,
+                    "Variant '{}' of enum '{}' passed to a function expecting enum '{}' at line {}, column {}",
+                    variant_name, entity_name, given_entity_name, line_number, column
                 )
             }
             ToSQLError::EnumNotFound {

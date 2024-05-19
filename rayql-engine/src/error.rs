@@ -74,73 +74,12 @@ fn pretty_tokenization_error_message(
 
 pub fn pretty_to_sql_error_message(error: ToSQLError, code: &str) -> String {
     match error {
-        ToSQLError::UnknownReference {
-            entity_name,
-            line_number,
-            column,
-        } => {
-            format!(
-                "Unknown reference: {} at line {}, column {}",
-                entity_name, line_number, column
-            )
-        }
-        ToSQLError::EnumNotFound {
-            enum_name,
-            line_number,
-            column,
-        } => {
-            format!(
-                "Enum not found: {} at line {}, column {}",
-                enum_name, line_number, column
-            )
-        }
-        ToSQLError::ModelNotFound {
-            model_name,
-            line_number,
-            column,
-        } => {
-            format!(
-                "Model not found: {} at line {}, column {}",
-                model_name, line_number, column
-            )
-        }
-        ToSQLError::FieldNotFound {
-            model_name,
-            field_name,
-            line_number,
-            column,
-        } => {
-            format!(
-                "Field '{}' does not exists on model '{}': at line {}, column {}",
-                field_name, model_name, line_number, column
-            )
-        }
-        ToSQLError::VariantNotFound {
-            enum_name,
-            variant,
-            line_number,
-            column,
-        } => {
-            format!(
-                "Variant '{}' does not exists on enum '{}': at line {}, column {}",
-                variant, enum_name, line_number, column
-            )
-        }
-        ToSQLError::ConversionError {
-            reason,
-            line_number,
-            column,
-        } => {
-            format!(
-                "Conversion error: {} at line {}, column {}",
-                reason, line_number, column
-            )
-        }
         ToSQLError::FunctionError {
             source,
             line_number,
             column,
         } => pretty_function_error_message(source, code, line_number, column),
+        e => e.to_string(),
     }
 }
 
