@@ -24,7 +24,7 @@ You can try RayQL using the [Online RayQL editor](https://harshdoesdev.github.io
 You can install RayQL by running the following command in your terminal:
 
 ```bash
-curl -s https://raw.githubusercontent.com/harshdoesdev/rayql/main/install.sh | sh
+curl -s https://rayql.com/install.sh | sh
 ```
 
 ## Schema Definition
